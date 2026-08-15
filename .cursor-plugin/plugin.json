@@ -1,0 +1,6 @@
+{
+  "name": "agentmore",
+  "description": "Over 1,600 priced external tools for search, social data, company and people data, SEO, scraping and media generation. Installs the skill that sets up and drives the AgentMore CLI.",
+  "version": "1.0.0",
+  "author": { "name": "AgentMore" }
+}

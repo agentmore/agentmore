@@ -1,0 +1,15 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "agentmore",
+  "owner": {
+    "name": "AgentMore",
+    "url": "https://agentmore.app"
+  },
+  "plugins": [
+    {
+      "name": "agentmore",
+      "source": "./",
+      "description": "Over 1,600 priced external tools for search, social data, enrichment, SEO, scraping and media generation"
+    }
+  ]
+}
