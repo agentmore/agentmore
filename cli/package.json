@@ -1,7 +1,7 @@
 {
   "name": "@agentmore/cli",
-  "version": "0.2.0",
-  "description": "Discover, inspect and run over 1,600 external data tools \u2014 social scraping, search, enrichment, SEO and media generation \u2014 from one command.",
+  "version": "0.2.1",
+  "description": "Discover, inspect and run over 1,600 external data tools — social scraping, search, enrichment, SEO and media generation — from one command.",
   "bin": {
     "agentmore": "./agentmore.mjs"
   },
