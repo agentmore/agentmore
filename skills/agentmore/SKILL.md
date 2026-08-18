@@ -33,38 +33,37 @@ for what to include.
 
 ---
 
-## Setup
+## Check You Are Current
 
-Check the installed CLI version:
+**Installing is not this file's job** — it is done once, per agent, from
+`https://agentmore.app/agent-setup/prompt.md`, which carries the command for
+each kind of agent. This file is what you read while *using* AgentMore. The one
+thing to confirm before you start:
 
 ```bash
 agentmore --version
 ```
 
-**Do the setup steps below if ANY of these is true:**
+It must equal the `version` in this skill's frontmatter — the CLI and the skill
+ship as a pair, and a mismatch means one of them is describing commands the
+other does not have.
 
-- `agentmore` is not found (not installed).
-- The CLI warned that a newer version is available.
-- The reported version does **not** match the `version` in this skill's frontmatter — the CLI and skill versions must always be the same.
-
-**Setup steps (same for a fresh install and for an update):**
-
-1. Install (or update) the CLI, then run setup:
+**If the version differs, the CLI warns that a newer one exists, or the command
+is not found at all**, bring BOTH sides up — never downgrade one to match the
+other:
 
 ```bash
 npm install -g @agentmore/cli@latest
-agentmore setup --client <agent-name-if-known>
+agentmore setup
 ```
 
-`agentmore setup` completes CLI setup. Pass `--client` with your agent name if
-available. It is optional — omit it if you don't know the value. Setup never
-needs anything about the user, so never stop to ask them a question.
+Then re-save this skill from `https://agentmore.app/skill.md` over your current
+copy and make sure it stays enabled for future sessions.
 
-2. Save the most recent skill from `https://agentmore.app/skill.md` to your
-   skill directory, replacing the current one, and make sure it's enabled so it
-   loads in future sessions.
-
-Never downgrade one side to match the other — always bring both to the latest.
+`agentmore setup` is a check, not a signup: it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks nothing about the
+user, so never stop on it to ask a question. `--client <agent-name>` optionally
+records which agent is driving, for attribution — omit it if you do not know.
 
 If your client speaks MCP, you can skip the CLI entirely and reach the same
 catalog on the same balance — see "Or Connect It as an MCP Server" below.
@@ -78,28 +77,12 @@ the catalog is reachable — this CLI, the hosted MCP server, a plain HTTP call,
 a sandbox, CI — and it needs no browser, which matters because you are an agent
 and cannot complete one.
 
-When helping a user set up AgentMore for the first time:
-
-1. Ask the user to create an account at `https://agentmore.app` if they don't
-   have one. **Every new account starts with 50 free credits**, so they can try
-   tools out before paying anything — say so when you ask, and no plan is
-   required.
-2. Ask the user to generate an API key at `https://agentmore.app/app/api-keys`.
-   The page creates and shows scoped access for their own agents, and a first
-   visit with no keys can mint one — so this is a copy, not a chore.
-3. Once they have the key, offer to save it for them — ask them to paste it,
-   then run:
+If `agentmore setup` reports no key, ask the user for one — they create it at
+`https://agentmore.app/app/api-keys`, it is free, and a new account comes with
+50 credits and no card. Once they paste it back:
 
 ```bash
 agentmore keys add -k <their-api-key> -l main
-```
-
-Alternatively, provide the command above for them to run themselves.
-
-4. Verify the key is configured:
-
-```bash
-agentmore setup
 ```
 
 Set `AGENTMORE_API_KEY` instead when you cannot write to disk; it overrides the

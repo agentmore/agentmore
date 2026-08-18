@@ -653,10 +653,15 @@ async function cmdSetup(flags) {
     console.log("    2. Copy a key from https://agentmore.app/app/api-keys");
     console.log(`    3. ${bold("agentmore keys add -k <your-api-key> -l main")}\n`);
     console.log(dim(`  Or sign in through the browser instead: ${bold("agentmore login")}\n`));
-    console.log("  Running a tool is paid, two ways — same catalog either way:");
-    console.log(`    · ${bold("Start a plan")} and pay per call, no subscription`);
-    console.log(`    · ${bold("A subscription")}, which includes a monthly tool allowance`);
-    console.log(dim(`    Pricing: ${baseUrl()}/pricing\n`));
+    // ⛔ There is NO top-up and no pay-per-call — credits come from a plan and
+    // only from a plan. This block used to offer "start a plan and pay per call,
+    // no subscription" alongside "a subscription", which is two descriptions of
+    // a purchase path that no longer exists. A fresh install is exactly where a
+    // stranger forms their idea of how this is billed, so it has to be the real
+    // one: free credits on signup, then a plan.
+    console.log(`  ${bold("A new account starts with 50 free credits")} — no card, enough to try it.`);
+    console.log("  After that, a plan is how credits arrive, and they refresh each month.");
+    console.log(dim(`    Plans: ${baseUrl()}/pricing\n`));
     console.log(dim("  Discovery and inspection are free and work right now, signed in or not."));
     return;
   }

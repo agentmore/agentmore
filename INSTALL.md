@@ -20,7 +20,28 @@ claude plugin marketplace add agentmore/agentmore
 claude plugin install agentmore@agentmore
 ```
 
-The plugin becomes active after `/reload-plugins`.
+The plugin becomes active after `/reload-plugins`. The plugin ships the skill,
+not the CLI — a plugin manifest cannot run npm — so install that too:
+
+Install the CLI the skill drives, and confirm it answers:
+
+```
+npm install -g @agentmore/cli@latest
+agentmore setup
+```
+
+`agentmore setup` is a check, not a signup — it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks the user nothing, so
+never stop on it.
+
+Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
+free and comes with 50 credits, no card. Once they paste it back:
+
+```
+agentmore keys add -k <key> -l main
+```
+
+`agentmore discover` works without a key; only a paid call needs one.
 
 ### Codex
 
@@ -29,7 +50,28 @@ codex plugin marketplace add agentmore/agentmore
 codex plugin add agentmore@agentmore
 ```
 
-Codex reads the same marketplace manifest, so this is the same plugin.
+Codex reads the same marketplace manifest, so this is the same plugin, and it
+becomes active after a restart.
+
+Install the CLI the skill drives, and confirm it answers:
+
+```
+npm install -g @agentmore/cli@latest
+agentmore setup
+```
+
+`agentmore setup` is a check, not a signup — it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks the user nothing, so
+never stop on it.
+
+Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
+free and comes with 50 credits, no card. Once they paste it back:
+
+```
+agentmore keys add -k <key> -l main
+```
+
+`agentmore discover` works without a key; only a paid call needs one.
 
 ### Hermes
 
@@ -37,7 +79,28 @@ Codex reads the same marketplace manifest, so this is the same plugin.
 hermes skills install https://agentmore.app/skill.md
 ```
 
-Hermes installs skills directly from a URL.
+Hermes installs skills directly from a URL. That is the skill only, so the CLI
+is a separate step:
+
+Install the CLI the skill drives, and confirm it answers:
+
+```
+npm install -g @agentmore/cli@latest
+agentmore setup
+```
+
+`agentmore setup` is a check, not a signup — it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks the user nothing, so
+never stop on it.
+
+Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
+free and comes with 50 credits, no card. Once they paste it back:
+
+```
+agentmore keys add -k <key> -l main
+```
+
+`agentmore discover` works without a key; only a paid call needs one.
 
 ### OpenClaw
 
@@ -50,15 +113,73 @@ npx -y skills add agentmore/agentmore --skill '*' --yes --agent openclaw
 `skills/agentmore/`. The command above writes to `./skills/`, where OpenClaw
 reads from.
 
-### Every other agent with a shell
-
-Cursor, OpenCode, Windsurf, GitHub Copilot and most others:
+Install the CLI the skill drives, and confirm it answers:
 
 ```
 npm install -g @agentmore/cli@latest
-npx -y skills add agentmore/agentmore --skill '*' --yes --global
 agentmore setup
 ```
+
+`agentmore setup` is a check, not a signup — it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks the user nothing, so
+never stop on it.
+
+Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
+free and comes with 50 credits, no card. Once they paste it back:
+
+```
+agentmore keys add -k <key> -l main
+```
+
+`agentmore discover` works without a key; only a paid call needs one.
+
+### Cursor
+
+```
+npx -y skills add agentmore/agentmore --skill '*' --yes --agent cursor
+```
+
+Cursor has a terminal, so it takes the CLI path like any other shell agent —
+there is no `cursor plugin` command, and MCP is not needed here.
+
+Install the CLI the skill drives, and confirm it answers:
+
+```
+npm install -g @agentmore/cli@latest
+agentmore setup
+```
+
+`agentmore setup` is a check, not a signup — it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks the user nothing, so
+never stop on it.
+
+Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
+free and comes with 50 credits, no card. Once they paste it back:
+
+```
+agentmore keys add -k <key> -l main
+```
+
+`agentmore discover` works without a key; only a paid call needs one.
+
+### Every other agent with a shell
+
+OpenCode, Windsurf, GitHub Copilot and most others:
+
+```
+npx -y skills add agentmore/agentmore --skill '*' --yes --global
+```
+
+Install the CLI the skill drives, and confirm it answers:
+
+```
+npm install -g @agentmore/cli@latest
+agentmore setup
+```
+
+`agentmore setup` is a check, not a signup — it verifies the host is reachable,
+whether a key is stored and whether that key works. It asks the user nothing, so
+never stop on it.
 
 If your agent is one the skills installer knows by name, say so — it writes to
 that agent's own directory rather than the shared one:
@@ -75,17 +196,14 @@ Valid names include `hermes-agent`, `openclaw`, `opencode`, `cursor`,
 That much needs no account. Searching the catalog and inspecting a tool's input
 schema and price are free and anonymous.
 
-### Signing in — only after a manual `npm install`
-
-Not needed after a plugin install; the skill handles it.
+Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
+free and comes with 50 credits, no card. Once they paste it back:
 
 ```
-agentmore login
+agentmore keys add -k <key> -l main
 ```
 
-It prints a URL and a short code, then waits for the user to approve it in
-their browser. The CLI holds the other half of the exchange and stores the token
-itself, so there is no key to paste anywhere.
+`agentmore discover` works without a key; only a paid call needs one.
 
 ---
 
@@ -106,10 +224,10 @@ install.
 Signing in happens in the browser on the first tool call. Custom connectors are
 available on every plan; a Free account is limited to one.
 
-### Cursor, GitHub Copilot, and all other agents
+### GitHub Copilot, and all other agents
 
-Add to `.cursor/mcp.json` (Cursor), `.vscode/mcp.json` (Copilot), or your
-agent's MCP config file under `"mcpServers"`:
+Add to `.vscode/mcp.json` (Copilot) or your agent's MCP config file under
+`"mcpServers"`:
 
 ```json
 "agentmore": {
@@ -124,8 +242,11 @@ Or, from a terminal that has one of those agents installed:
 codex mcp add agentmore --url https://agentmore.app/api/agentmore/mcp
 ```
 
-OAuth triggers automatically on first AgentMore tool use. The server describes
-itself once connected, so there is no skill to install for this path.
+Authenticate with a key from `https://agentmore.app/app/api-keys` — signing up is free and
+comes with 50 credits. Some clients prompt for it on the first tool
+call; others want it as an `Authorization: Bearer <key>` header in the config
+above. The server describes itself once connected, so there is no skill to
+install for this path.
 
 ---
 
@@ -148,7 +269,6 @@ For setup guides and troubleshooting, refer to each agent's official
 documentation:
 
 - Claude Code: `https://docs.anthropic.com/en/docs/claude-code/mcp`
-- Cursor: `https://cursor.com/docs/mcp`
 - Windsurf: `https://docs.windsurf.com/windsurf/cascade/mcp`
 - OpenCode: `https://opencode.ai/docs/mcp-servers/`
 - GitHub Copilot (VS Code): `https://code.visualstudio.com/docs/copilot/customization/mcp-servers`
