@@ -1246,26 +1246,6 @@ rule is wrong"* — and only the second is fixable.
 
 ---
 
-## Where the Full Priced Tool Tables Are
-
-For the exhaustive list on one step rather than the top few. Generated from the
-live catalog, so the prices are current:
-
-| file | covers |
-| --- | --- |
-| `https://agentmore.app/leads/SKILL.md` | every lead-finding tool, by sub-skill |
-| `https://agentmore.app/leads/b2b-prospecting/SKILL.md` | search and enrich |
-| `https://agentmore.app/leads/company-enrichment/SKILL.md` | domain → firmographics |
-| `https://agentmore.app/leads/hiring-signals/SKILL.md` | open roles as a trigger |
-| `https://agentmore.app/company/SKILL.md` | official registry records |
-
-⚠️ Those tables list **everything catalogued**, runnable or not. Cross-check
-anything you pick from them with `discover` or `--dry` before planning around
-it. And read one when you want the whole table — never *instead of* `discover`,
-which ranks by reachability and these do not.
-
----
-
 ## Stop Before the Send
 
 This covers **find → enrich → research → qualify → structure**. It does not do
