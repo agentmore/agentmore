@@ -1,6 +1,6 @@
 ---
 name: agency-leadgen
-version: 0.3.0
+version: 0.4.0
 description: >-
   Find companies and the people inside them, then enrich, research and qualify
   them into leads. Proactively load this before writing a scraper for company or
@@ -14,10 +14,11 @@ description: >-
   leadgen, prospecting, outbound research, ICP, list building, sales
   intelligence and B2B contact data. It reaches these sources through the
   AgentMore catalog, discovering the right endpoint per step rather than using a
-  fixed one. It is lead-gen ONLY and bounds its own discovery to that: it does
-  not do media, image, video or voice generation, crypto, markets, ecommerce,
-  logistics or non-LinkedIn social, and refuses those rather than reaching for
-  them. It also stops before the send: no sending, sequencing, inboxes or
+  fixed one. It is lead-gen ONLY and bounds its own discovery to that: it looks
+  companies and people up on LinkedIn, Instagram, TikTok, X, Facebook, Reddit
+  and YouTube, but does not do media, image, video or voice generation, crypto,
+  markets, ecommerce, logistics, or social content and growth work, and refuses
+  those rather than reaching for them. It also stops before the send: no sending, sequencing, inboxes or
   deliverability. Exception: if the user already has a dedicated MCP server, API
   key, CRM or sales-intelligence seat for that specific service, use theirs —
   this fills the gaps in their stack, it does not replace it.
@@ -248,6 +249,7 @@ balance on it, and hand back a deliverable nobody asked for.
 | person and company enrichment | fill the row |
 | web search, page scraping, site maps | research the prospect |
 | Google Maps local businesses and their reviews | ⭐ local trades — the main source for them |
+| Social profiles and posts — Instagram, TikTok, X, Facebook, Reddit, YouTube | find and qualify a company or person off-LinkedIn |
 | SERP, ranked keywords, technographics, site audits | search presence and stack |
 | LinkedIn — profiles, posts, employees, jobs, groups, reactions, ads | signals and engagement |
 | job postings, funding and news, reviews | buying signals |
@@ -258,10 +260,10 @@ user asks for it in the middle of a lead-gen task:
 
 - **Media generation** — image, video, voice, music, avatars, 3D. Not a lead-gen
   capability. Not "just a quick logo". Not for the outreach either.
-- **Social platforms other than LinkedIn** — TikTok, Instagram, X, YouTube,
-  Facebook, Reddit and the rest, *except* the narrow uses named above
-  (ad libraries and community mining as qualification signals). B2B decision
-  makers are on LinkedIn; the rest is a different product.
+- **Social CONTENT work** — scheduling, posting, growth tactics, follower
+  farming, creator analytics, influencer campaigns, trend reports. Looking a
+  company or person UP on a social platform is in scope (see below); running
+  their social presence is a different product.
 - **Crypto, markets, trading, on-chain data.**
 - **Ecommerce, marketplaces, product listings, price tracking.**
 - **Trade, customs, freight, logistics.**
@@ -362,6 +364,7 @@ business outcome you want. Measured against this catalog:
 | who ranks for a term | `google serp results` · `serp` | `google search results` |
 | buying signals | `open job postings at a company` · `company news and funding` | `is this a good time to call` |
 | what they run | `tech stack detect` | `company technology stack` |
+| a social profile | `instagram user info by username` · `twitter user profile` | `find their socials` |
 
 If a query returns nothing, **rephrase toward the record**, do not conclude the
 capability is missing. Two rounds of rephrasing before you give up.
@@ -838,6 +841,59 @@ against the ICP, then enrich only the ones that fit.
 
 `search_posts` (0.6) finds the posts in the first place — search the pain, not
 the company.
+
+### Play B2: Social lookup — they are not all on LinkedIn
+
+⭐ **LinkedIn is where B2B decision makers list themselves. It is not where most
+businesses actually live.** A gym, a salon, a restaurant, a builder, a local
+agency, a consumer brand — many have a thin LinkedIn page and an active
+Instagram or Facebook, and for a founder-led business the personal account is
+often the real one.
+
+So when LinkedIn is empty or the ICP is consumer-facing, look elsewhere. Almost
+everything here is **0.15 a call**, which makes it cheap enough to try two
+platforms before giving up.
+
+```bash
+agentmore discover -q "instagram user info by username" -l 3
+# -> tikhub/…/instagram/v1/fetch_user_info_by_username   0.15  PER_CALL
+
+agentmore discover -q "twitter user profile" -l 3
+# -> tikhub/…/twitter/web/fetch_user_profile             0.15  PER_CALL
+```
+
+| platform | find them | read them | good for |
+| --- | --- | --- | --- |
+| **Instagram** | `…/instagram/v1/fetch_search` · `fetch_user_info_by_username` | `fetch_user_posts_v2` · `fetch_user_reels` | local trades, consumer brands, founder-led businesses |
+| **TikTok** | `…/tiktok/web/fetch_user_profile` | `…/tiktok/app/v3/fetch_user_post_videos` | younger consumer brands, anything doing video marketing |
+| **X** | `…/twitter/web/fetch_user_profile` · `fetch_search_timeline` | `fetch_user_post_tweet` | tech founders, B2B SaaS, anyone who posts opinions |
+| **Facebook** | `apify/apify/facebook-pages-scraper` (1.5, per result) | `facebook-reviews-scraper` (0.3) | local businesses, trades, services — often the only page they maintain |
+| **Reddit** | `…/reddit/app/fetch_search_typeahead` · `fetch_subreddit_info` | `fetch_user_posts` · `fetch_post_comments` | finding the problem in the buyer's own words |
+| **YouTube** | `…/youtube/web_v2/get_channel_id` | `get_channel_description` · `get_channel_community_posts` | anyone whose marketing is long-form |
+
+**What social actually adds to a lead row, beyond a handle:**
+
+- **Proof the business is alive.** A last post from 2019 is a disqualifier that
+  no firmographic field will tell you.
+- **Size and reach**, for a business with no headcount data anywhere.
+- **The hook.** What they posted about last week is more current, and more
+  specific, than anything on their website.
+- **The real decision maker.** On a small business the personal account is
+  usually the owner, and it is usually more responsive than a company page.
+
+⚠️ **One platform per company, and only when you need it.** Checking six
+platforms for one lead is six calls for a field nobody asked for. Pick the one
+the ICP actually uses — a plumber is on Facebook, a SaaS founder is on X — and
+stop there.
+
+⚠️ **A handle is not a verified identity.** Names collide, and a lookup that
+returns *someone* is not proof it is *the right someone*. Cross-check against
+the domain, the location or the bio before putting it on the row, and if you
+cannot, say the match is unconfirmed.
+
+⚠️ **This is lookup, not surveillance.** Public profile and public posts, to
+qualify a business. Do not build a personal profile of someone's private life,
+and do not go near a personal account that has nothing to do with the business.
 
 ### Play C: Find who is spending money
 
