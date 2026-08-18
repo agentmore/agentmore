@@ -64,11 +64,35 @@ This file is the JOB. Installing is three commands and lives in its own place:
 
     https://agentmore.app/agency/setup.md
 
-If `agentmore --version` answers and matches the `version` in this file's
-frontmatter, you are set up — skip ahead. If it does not, or the command is not
-found, follow the setup file above and come back. The CLI and this skill ship as
-a pair, so a version mismatch means one is describing commands the other does
-not have.
+⚠️ **CHECK YOU ARE NOT RUNNING A STALE COPY — nothing updates it for you.**
+`npx skills add` wrote this file to disk and nothing phones home, so you will
+run whatever was installed until somebody reinstalls. One cheap check:
+
+```bash
+curl -s https://agentmore.app/api/skill-catalog | grep -o '"id":"agency"[^}]*"version":"[^"]*"'
+```
+
+If the `version` it reports is higher than the `version` in this file's own
+frontmatter, **you are out of date** — the instructions you are reading may
+name tools, prices or limits that have changed. Update in place:
+
+```bash
+npx -y skills add agentmore/agentmore --skill agency-leadgen --yes --global --force
+```
+
+`--force` is the part that matters: without it the installer sees the skill is
+already there and silently skips. Restart your agent afterwards.
+
+Do this **once at the start of a session**, not before every task — it is a free
+call, but it is not free attention.
+
+Also confirm the CLI matches: `agentmore --version` should equal this file's
+`version`. They ship as a pair, so a mismatch means one is describing commands
+the other does not have. If it differs:
+
+```bash
+npm install -g @agentmore/cli@latest
+```
 
 ---
 
@@ -642,6 +666,21 @@ is **3 credits a CALL** and returns ~20 businesses; the Apify actor is 0.45 **a
 ROW**, so the same 20 rows cost 9. One call, a third of the price, richer
 records. `inspect` both if you are unsure — the pricing shape is the decision,
 not the headline number.
+
+⚠️ **IF SERPAPI FAILS, FALL STRAIGHT TO THE APIFY ACTOR.** It runs on a monthly
+search quota that is shared with other work, so it can run out mid-month and
+every call then fails until the month resets. That is not your input being
+wrong and there is nothing to retry — switch tools and say you did:
+
+```bash
+agentmore run "apify/damilo/google-maps-scraper" \
+  -i '{"query":"plumber","location":"Amsterdam","max_results":10}' -o local.json
+```
+
+⚠️ It is `PER_RESULT`, so `max_results` is the bill and the schema's own note
+warns that omitting it falls back to the vendor's default. Set it. And see
+[Move Fast](#move-fast--one-dry-run-then-go): the cap can be ignored, so budget
+for ~20 rows whatever you asked for.
 
 ⚠️ **`ll` is what anchors the search, and without it results are meaningless.**
 It is `@<lat>,<lng>,<zoom>z` — `@52.3676,4.9041,14z` is central Amsterdam.
