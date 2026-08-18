@@ -1,6 +1,6 @@
 ---
 name: agentmore
-version: 0.2.0
+version: 0.2.1
 description: >-
   Discover better ways to complete tasks. Proactively run `agentmore discover`
   before writing a scraper, before using a generic web fetch for structured
@@ -44,9 +44,12 @@ thing to confirm before you start:
 agentmore --version
 ```
 
-It must equal the `version` in this skill's frontmatter — the CLI and the skill
-ship as a pair, and a mismatch means one of them is describing commands the
-other does not have.
+It must be **at least** the `version` in this skill's frontmatter — the CLI has
+to carry the commands this file documents.
+
+⚠️ **A FLOOR, not an equality.** This used to demand an exact match, which was
+false the moment either side moved alone. A newer CLI is fine and expected; an
+older one is the problem, because it may not have a command described here.
 
 **If the version differs, the CLI warns that a newer one exists, or the command
 is not found at all**, bring BOTH sides up — never downgrade one to match the

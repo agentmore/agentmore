@@ -1,6 +1,6 @@
 ---
 name: agency-leadgen
-version: 0.2.0
+version: 0.3.0
 description: >-
   Find companies and the people inside them, then enrich, research and qualify
   them into leads. Proactively load this before writing a scraper for company or
@@ -86,9 +86,17 @@ already there and silently skips. Restart your agent afterwards.
 Do this **once at the start of a session**, not before every task — it is a free
 call, but it is not free attention.
 
-Also confirm the CLI matches: `agentmore --version` should equal this file's
-`version`. They ship as a pair, so a mismatch means one is describing commands
-the other does not have. If it differs:
+Also confirm the CLI is recent enough — **`agentmore --version` must be at
+least `0.2.1`**.
+
+⚠️ **It is deliberately a FLOOR, not an equality.** This file and the CLI used
+to claim they shipped "as a pair" and had to match exactly, which was false the
+moment either moved alone — and both did. The skill changes far more often than
+the binary (a dozen edits to this file against one CLI release), so requiring
+equality means either bumping the CLI for nothing or leaving this file stale.
+A floor is the honest constraint: the CLI must have the commands this file uses.
+
+If it is older:
 
 ```bash
 npm install -g @agentmore/cli@latest
