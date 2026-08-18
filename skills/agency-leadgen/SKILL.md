@@ -1,6 +1,6 @@
 ---
 name: agency-leadgen
-version: 0.4.0
+version: 0.5.0
 description: >-
   Find companies and the people inside them, then enrich, research and qualify
   them into leads. Proactively load this before writing a scraper for company or
@@ -850,36 +850,38 @@ agency, a consumer brand — many have a thin LinkedIn page and an active
 Instagram or Facebook, and for a founder-led business the personal account is
 often the real one.
 
-So when LinkedIn is empty or the ICP is consumer-facing, look elsewhere. Almost
-everything here is **0.15 a call**, which makes it cheap enough to try two
-platforms before giving up.
+So when LinkedIn is empty or the ICP is consumer-facing, look elsewhere.
+
+⚠️ **THE PLATFORMS ARE BOUNDED. THE ENDPOINTS ARE NOT.** These six are in scope:
+
+> **Instagram · TikTok · X · Facebook · Reddit · YouTube** — plus LinkedIn,
+> which the rest of this file already covers.
+
+Inside them, **discover and run whatever the job needs.** There is a lot here —
+hundreds of endpoints across these platforms — and no table in a file could stay
+current or guess which one your question wants. Search for the record you want
+and take what comes back:
 
 ```bash
-agentmore discover -q "instagram user info by username" -l 3
-# -> tikhub/…/instagram/v1/fetch_user_info_by_username   0.15  PER_CALL
-
-agentmore discover -q "twitter user profile" -l 3
-# -> tikhub/…/twitter/web/fetch_user_profile             0.15  PER_CALL
+agentmore discover -q "instagram user info by username"
+agentmore discover -q "twitter user profile"
+agentmore discover -q "facebook pages"
+agentmore discover -q "reddit search"
 ```
 
-| platform | find them | read them | good for |
-| --- | --- | --- | --- |
-| **Instagram** | `…/instagram/v1/fetch_search` · `fetch_user_info_by_username` | `fetch_user_posts_v2` · `fetch_user_reels` | local trades, consumer brands, founder-led businesses |
-| **TikTok** | `…/tiktok/web/fetch_user_profile` | `…/tiktok/app/v3/fetch_user_post_videos` | younger consumer brands, anything doing video marketing |
-| **X** | `…/twitter/web/fetch_user_profile` · `fetch_search_timeline` | `fetch_user_post_tweet` | tech founders, B2B SaaS, anyone who posts opinions |
-| **Facebook** | `apify/apify/facebook-pages-scraper` (1.5, per result) | `facebook-reviews-scraper` (0.3) | local businesses, trades, services — often the only page they maintain |
-| **Reddit** | `…/reddit/app/fetch_search_typeahead` · `fetch_subreddit_info` | `fetch_user_posts` · `fetch_post_comments` | finding the problem in the buyer's own words |
-| **YouTube** | `…/youtube/web_v2/get_channel_id` | `get_channel_description` · `get_channel_community_posts` | anyone whose marketing is long-form |
+Most of this surface is **0.15 a call**, cheap enough to try a second platform
+before giving up. `inspect` still decides: it carries the real price and the
+pricing shape, and some of these are per-result.
 
 **What social actually adds to a lead row, beyond a handle:**
 
-- **Proof the business is alive.** A last post from 2019 is a disqualifier that
-  no firmographic field will tell you.
+- **Proof the business is alive.** A last post from 2019 is a disqualifier no
+  firmographic field will tell you.
 - **Size and reach**, for a business with no headcount data anywhere.
-- **The hook.** What they posted about last week is more current, and more
-  specific, than anything on their website.
+- **The hook.** What they posted last week is more current and more specific
+  than anything on their website.
 - **The real decision maker.** On a small business the personal account is
-  usually the owner, and it is usually more responsive than a company page.
+  usually the owner, and usually more responsive than a company page.
 
 ⚠️ **One platform per company, and only when you need it.** Checking six
 platforms for one lead is six calls for a field nobody asked for. Pick the one
