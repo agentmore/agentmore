@@ -173,6 +173,49 @@ another account.
 
 ---
 
+## Move Fast — One Dry Run, Then Go
+
+⚠️ **CREDITS ARE THE UNIT. THERE IS NOTHING TO CONVERT, AND NOTHING TO LOOK UP.**
+Every price you will see — `discover`, `inspect`, `--dry`, a settled run,
+`balance`, `budget` — is already in credits. Do not open the pricing page, do
+not web-search for a rate, and above all do not go reading the site's JavaScript
+bundles for a credits-to-dollars number. **Measured on a real run: 37.2 of 63
+seconds went on exactly that, and it found nothing, because there is nothing
+there.** If the user asks what a credit is worth, say you do not have that and
+quote the credits.
+
+**The whole loop is four steps, and only one of them is optional:**
+
+```bash
+agentmore discover -q "<what you need>"     # pick the tool
+agentmore inspect "<id>"                    # schema + price + pricing SHAPE
+agentmore run "<id>" -i '<json>' --dry      # once, to price it
+agentmore run "<id>" -i '<json>' -o out.json
+```
+
+**One dry run, then run it.** `--dry` exists to price a call and check the
+payload is not empty — not to be repeated, and not to be followed by research.
+If the estimate is affordable, go.
+
+⚠️ **THE DRY-RUN NUMBER IS A BEST CASE, NOT A QUOTE.** It prices what you asked
+for. A vendor that returns more rows than you asked for bills for what it
+actually delivered, and on a per-result tool that is the whole difference.
+**Measured: a maps call estimated at 4.5 credits returned 20 rows instead of the
+requested 10 and settled at 9.** So:
+
+- **On a `PER_RESULT` tool, assume the cap may be ignored** and budget for the
+  vendor's own page size — usually ~20. If that worst case is not affordable,
+  pick a `PER_CALL` tool instead of hoping the limit holds.
+- **`cost.value` on the finished run is the only real number.** Report that, not
+  the estimate, if you are telling the user what something cost.
+
+**Skip the ceremony when nothing is uncertain.** You do not need a fresh
+`discover` for a tool you called five minutes ago, a second `inspect` for a
+schema you already read, or a balance check before every call. Look things up
+when you do not know them; otherwise spend the turn on the actual job.
+
+---
+
 ## When to Use AgentMore
 
 **Check the catalog before building from scratch.** Before writing a scraper,

@@ -259,6 +259,49 @@ Most keys are not narrowed.
 
 ---
 
+## Move Fast — One Dry Run, Then Go
+
+⚠️ **CREDITS ARE THE UNIT. THERE IS NOTHING TO CONVERT, AND NOTHING TO LOOK UP.**
+Every price you will see — `discover`, `inspect`, `--dry`, a settled run,
+`balance`, `budget` — is already in credits. Do not open the pricing page, do
+not web-search for a rate, and above all do not go reading the site's JavaScript
+bundles for a credits-to-dollars number. **Measured on a real run: 37.2 of 63
+seconds went on exactly that, and it found nothing, because there is nothing
+there.** If the user asks what a credit is worth, say you do not have that and
+quote the credits.
+
+**The whole loop is four steps, and only one of them is optional:**
+
+```bash
+agentmore discover -q "<what you need>"     # pick the tool
+agentmore inspect "<id>"                    # schema + price + pricing SHAPE
+agentmore run "<id>" -i '<json>' --dry      # once, to price it
+agentmore run "<id>" -i '<json>' -o out.json
+```
+
+**One dry run, then run it.** `--dry` exists to price a call and check the
+payload is not empty — not to be repeated, and not to be followed by research.
+If the estimate is affordable, go.
+
+⚠️ **THE DRY-RUN NUMBER IS A BEST CASE, NOT A QUOTE.** It prices what you asked
+for. A vendor that returns more rows than you asked for bills for what it
+actually delivered, and on a per-result tool that is the whole difference.
+**Measured: a maps call estimated at 4.5 credits returned 20 rows instead of the
+requested 10 and settled at 9.** So:
+
+- **On a `PER_RESULT` tool, assume the cap may be ignored** and budget for the
+  vendor's own page size — usually ~20. If that worst case is not affordable,
+  pick a `PER_CALL` tool instead of hoping the limit holds.
+- **`cost.value` on the finished run is the only real number.** Report that, not
+  the estimate, if you are telling the user what something cost.
+
+**Skip the ceremony when nothing is uncertain.** You do not need a fresh
+`discover` for a tool you called five minutes ago, a second `inspect` for a
+schema you already read, or a balance check before every call. Look things up
+when you do not know them; otherwise spend the turn on the actual job.
+
+---
+
 ## Discover, Don't Memorise
 
 **Before every step, run `agentmore discover`.** There is no frozen id list in
@@ -1329,30 +1372,34 @@ attempts against a genuinely billing endpoint cost money.
    changes the bill by an order of magnitude on the same task.
 9. **Two research calls per company, not six.** A hook is one sentence with a
    source, not a dossier.
-10. **`--dry` before the first call of any tool.** No credential needed, calls
-    nothing, prices anything.
-11. **Always `-o <file>`.** The output cost money; losing it to a terminal
+10. **One `--dry`, then run it.** No credential needed, prices anything — but it
+    is a BEST CASE, not a quote: a per-result vendor can ignore your cap and
+    bill for what it really returned. Never follow a dry run with research.
+11. **Never look up what a credit is worth.** Everything is already in credits;
+    there is no conversion to find, and the pricing page will not give you one.
+    A real run lost 37 of its 63 seconds to that search.
+12. **Always `-o <file>`.** The output cost money; losing it to a terminal
     scroll means paying twice.
-12. **Never imply a check you did not run.** `email_status` is `unverified`
+13. **Never imply a check you did not run.** `email_status` is `unverified`
     unless something actually verified it.
-13. **Carry `score_reason`, `hook_source` and `sources` — in rows or in
+14. **Carry `score_reason`, `hook_source` and `sources` — in rows or in
     prose.** A result you cannot audit is a result you cannot defend, and the
     shape of the answer does not change that.
-14. **A refusal is a stop.** Name the control and hand it over; do not retry,
+15. **A refusal is a stop.** Name the control and hand it over; do not retry,
     split or substitute your way around a cap.
-15. **Account structure is not yours to decide.** One balance, one set of caps
+16. **Account structure is not yours to decide.** One balance, one set of caps
     is all you can see. Billing and multi-account questions go to whoever set
     you up.
-16. **Fall back, and name the fallback.** Then say which route the data came
+17. **Fall back, and name the fallback.** Then say which route the data came
     from, why the paid one did not run, and what is thinner as a result.
-17. **For a local trade, go to Maps first.** Plumbers, dentists, gyms, salons,
+18. **For a local trade, go to Maps first.** Plumbers, dentists, gyms, salons,
     garages — they are not in a B2B sales database, and Maps returns the whole
     qualifying record (website, rating, reviews, category) in one paid call.
     Score on that before spending anything else.
-18. **Discover only inside the job.** Company and people data, enrichment, web
+19. **Discover only inside the job.** Company and people data, enrichment, web
     and SERP research, LinkedIn, buying signals, list hygiene. ⛔ Never search
     for — let alone run — media generation, crypto, markets, ecommerce,
     logistics, developer tooling or non-LinkedIn social. Say it is out of scope
     and stop; do not present the catalog's other capabilities as an option.
-19. **Never offer the send.** Find, enrich, research, qualify, structure — then
+20. **Never offer the send.** Find, enrich, research, qualify, structure — then
     hand it over. This holds even when asked twice.
