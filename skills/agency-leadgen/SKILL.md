@@ -91,7 +91,8 @@ API key:
 | **Exa** | web search and page contents | the cheapest way to answer "what is this company" |
 | **Akta** | company search, enrichment, news, employee and product reviews | company *search* and industry search are free |
 | **Google Maps** (via Apify) | local businesses as structured records — name, address, phone, website, rating, review count | ⭐ **the instrument for any local trade.** See Flow 2 |
-| **Google SERP** (via DataForSEO) | organic results for any query, plus the technologies a domain runs, keywords and backlinks | search presence, and who ranks for the money term |
+| **Google Maps** (via SerpApi) | local businesses as structured records — name, address, phone, website, rating, reviews | ⭐ the instrument for any local trade. 3 credits a call for ~20 |
+| **Google SERP** (via DataForSEO) | organic results, plus the technologies a domain runs, keywords and backlinks | search presence, and who ranks for the money term |
 
 ⚠️ **LinkedIn is reachable twice, at very different prices.** The
 `tikhub/api/v1/linkedin/…` endpoints are **per-call** at 0.15–0.6 credits; the
@@ -571,51 +572,52 @@ cost 0 credits. Confirm the ICP shape on those before paying for anything.
 
 ### Flow 2: A local trade — Google Maps is the instrument
 
-⭐ **This is one of the most important flows in the file.** A large share of
-agency lead-gen is local: plumbers, dentists, gyms, salons, garages, clinics,
-tradespeople. For all of it, **Google Maps is the right source and a B2B sales
-database is the wrong one** — those businesses are not in Apollo, and you will
-pay full price for thin, stale coverage discovering that.
-
-Maps returns the record you actually want, already structured: name, address,
-phone, website, rating, review count, category.
+⭐ **One of the most important flows in the file.** A large share of lead-gen is
+local: plumbers, dentists, gyms, salons, garages, clinics, tradespeople. For all
+of it **Maps is the right source and a B2B sales database is the wrong one** —
+those businesses are not in Apollo, and you pay full price for thin coverage
+discovering that.
 
 ```bash
 agentmore discover -q "google maps local businesses" -l 3
-# -> apify/damilo/google-maps-scraper           0.45   PER_RESULT
-# -> apify/compass/google-maps-reviews-scraper  0.068  PER_RESULT
+# -> serpapi/search.json?engine=google_maps      3 credits    PER_CALL
+# -> apify/damilo/google-maps-scraper            0.45         PER_RESULT
 
-agentmore inspect "apify/damilo/google-maps-scraper"
-# -> body: query, location, place_id, cid, language, max_results
-# -> required: query, location
-# -> PER_RESULT
-# -> Hints: charged PER RESULT — the result-count parameter controls how many
-#    rows are returned and billed. Set it explicitly.
+agentmore inspect "serpapi/search.json?engine=google_maps"
+# -> queryParams: q, ll, type, hl, start   (required: q)
 
-agentmore run "apify/damilo/google-maps-scraper" \
-  -i '{"query":"plumber","location":"Amsterdam","language":"nl","max_results":10}' --dry
+agentmore run "serpapi/search.json?engine=google_maps" \
+  -i '{"q":"plumber","ll":"@52.3676,4.9041,14z","hl":"nl"}' --dry
+# -> 3 credits (1 call)
 
-agentmore run "apify/damilo/google-maps-scraper" \
-  -i '{"query":"plumber","location":"Amsterdam","language":"nl","max_results":10}' -o local.json
+agentmore run "serpapi/search.json?engine=google_maps" \
+  -i '{"q":"plumber","ll":"@52.3676,4.9041,14z","hl":"nl"}' -o local.json
 ```
 
-⚠️ **`max_results` IS the bill.** This is per-result, and the schema's own note
-says leaving it out falls back to the vendor's default — which is not a number
-you chose. Always set it. Start at 10, confirm the shape, then widen.
+⚠️ **Prefer the per-call route, and check the shape before you assume.** SerpApi
+is **3 credits a CALL** and returns ~20 businesses; the Apify actor is 0.45 **a
+ROW**, so the same 20 rows cost 9. One call, a third of the price, richer
+records. `inspect` both if you are unsure — the pricing shape is the decision,
+not the headline number.
 
-⚠️ **`query` and `location` are separate fields, and both are required.** Do not
-fold the city into the query (`"plumber Amsterdam"` with an empty location) —
-`location` is what anchors the search.
+⚠️ **`ll` is what anchors the search, and without it results are meaningless.**
+It is `@<lat>,<lng>,<zoom>z` — `@52.3676,4.9041,14z` is central Amsterdam.
+Zoom 14z is roughly a city, 15–16z a district. There is no city-name field: if
+you only have a place name, geocode it first or put it in `q` and accept looser
+results.
+
+⚠️ **`start` pages in blocks of ~20 and each page is another billed call.** Do
+not page for volume without saying what it costs.
 
 **Qualifying off the map record, for free.** Everything you need for a first
-pass is already in what you just paid for:
+pass is in what you already paid for:
 
 | signal | what it tells you |
 | --- | --- |
 | **no website** | either disqualified, or the best prospect on the list — depends entirely on what the user sells |
-| **review count** | a proxy for size and how long they have been trading |
+| **review count** | a proxy for size and how long they have traded |
 | **rating** | a low rating is a pain point, and pain points are openers |
-| **category** | the ICP filter Maps gives you for nothing |
+| **type** | the ICP filter Maps gives you for nothing |
 
 Score on those before spending another credit. Most of a local list is
 disqualified on "no website" or "3 reviews" alone.
@@ -627,14 +629,11 @@ disqualified on "no website" or "3 reviews" alone.
   customers' own words, exactly what is going wrong. That is the hook.
 - `dataforseo/v3/on_page/instant_pages` at **0.03** — is their site any good
   (see [Play A](#play-a-qualify-a-whole-list-for-almost-nothing)).
-- The SERP flow below, when the question is *"do they show up when someone
-  searches for this"* rather than *"who exists here"*.
 
-⚠️ **Maps and SERP answer different questions — do not substitute one for the
-other.** Maps tells you **who exists** in a place, as records. SERP tells you
-**who ranks** for a term, as a results page. For "find me every dentist in
-Utrecht" the answer is Maps. For "who is winning the search for emergency
-plumber" it is SERP.
+⚠️ **Maps and SERP answer different questions.** Maps tells you **who exists**
+in a place, as records. SERP tells you **who ranks** for a term, as a results
+page. "Every dentist in Utrecht" is Maps. "Who is winning the search for
+emergency plumber" is SERP.
 
 ### Flow 2b: Search presence — the SERP complement
 
