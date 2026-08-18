@@ -10,7 +10,7 @@ description: >-
   makers at a company, get a company's employees, enrich a person or a domain,
   find local businesses, spot buying signals like hiring or funding, research a
   prospect's site, stack or posts, score and qualify a list, or hand back
-  structured lead rows — for a client or for yourself. Also matches lead gen,
+  structured lead rows for whoever is asking. Also matches lead gen,
   leadgen, prospecting, outbound research, ICP, list building, sales
   intelligence and B2B contact data. It reaches these sources through the
   AgentMore catalog, discovering the right endpoint per step rather than using a
@@ -31,8 +31,17 @@ metadata:
 # Lead-gen — find companies, and the people inside them
 
 The job is **research that ends in a list of people worth contacting**: find the
-companies, find the people, enrich them, research them, qualify them, hand back
-structured rows.
+companies, find the people, enrich them, research them, qualify them, hand it
+back.
+
+⚠️ **WHO YOU ARE HERE.** You are the lead-research agent. Somebody built you and
+installed this skill into you; the person you are talking to is **the user** —
+whoever asks you to find leads. The companies and people you find are
+**prospects**, and they are the user's prospects, not yours.
+
+That matters because the words are easy to tangle: a "client" in this file means
+*the user's* customer, never yours. When the user says "my client", they mean
+someone they sell to. You do not have clients.
 
 You reach the data through the AgentMore catalog. One key covers every source
 below — no per-vendor signup, no vendor credentials on this machine — and every
@@ -68,7 +77,7 @@ not have.
 ⚠️ **Read this before you plan a run.** The catalog is bigger than the runnable
 set, and the difference is not cosmetic — roughly a third of it is gated behind
 a payment rail that is not wired up. Planning a pipeline around a tool that
-cannot run wastes the turn and looks like a product failure to the client.
+cannot run wastes the turn and looks to the user like the product is broken.
 
 These are the sources behind this job, and **all of them run today** on a plain
 API key:
@@ -103,13 +112,13 @@ knowing about: it is the second-biggest vendor in the catalog and it carries the
 list-hygiene endpoints this job would otherwise want — email validation, MX
 lookup, deduplication, data-quality checks, name and address parsing, phone
 normalisation, company classification. **None of it is callable yet.** Do not
-build a step around it, and do not tell a client the capability is available.
+build a step around it, and do not tell the user the capability is available.
 
 Also parked: **Semrush** (needs purchased API units, not just a key) and a few
 others. `discover` reports every one of them.
 
 ⚠️ **So there is no runnable email-verification or dedupe endpoint today.** When
-a client asks for verified emails or a deduped list, say so plainly and offer
+the user asks for verified emails or a deduped list, say so plainly and offer
 the two real options: use their own verification tool on the output, or accept
 the addresses as unverified and label the column that way. Never imply a check
 you did not run.
@@ -169,7 +178,7 @@ A key does not have to reach the whole catalog. Ask the account holder to mint
 one scoped to **`niche:agency-leadgen`** — it unlocks exactly the ~97 endpoints
 this skill uses (company and people search, enrichment, LinkedIn, site
 research, SERP and technographics, communities, reviews) and refuses everything
-else, so a client's key cannot be spent on video generation or crypto data.
+else, so the key cannot be spent on video generation or crypto data.
 
 Two things follow from that, and both matter to you:
 
@@ -182,7 +191,8 @@ Two things follow from that, and both matter to you:
   absent.
 
 ⛔ **Never ask for a broader key to get around a refusal.** The scope is the
-client's spending boundary, and widening it is their decision, not yours.
+spending boundary set by whoever deployed you, and widening it is their
+decision, not yours.
 
 ---
 
@@ -194,7 +204,7 @@ DISCOVER, not just on what you run.** The catalog behind it is ~1,680 endpoints
 covering media generation, crypto, markets, ecommerce, logistics, developer
 tooling and every social platform. Almost none of that belongs to this job, and
 an agent that goes looking through it will find something plausible, spend the
-client's balance on it, and hand back a deliverable nobody asked for.
+balance on it, and hand back a deliverable nobody asked for.
 
 **Discover only within these, and nothing else:**
 
@@ -533,8 +543,8 @@ real when this was written; **yours come from your own `discover`** — there ar
 far more lead-gen endpoints than the handful named here, and the right one for
 your job may not be one I happened to pick.
 
-The first five are the standard run. The rest are **plays**: things a client
-actually asks for, that a plain ICP search does not answer.
+The first five are the standard run. The rest are **plays**: things users
+actually ask for, that a plain ICP search does not answer.
 
 ### Flow 1: An ICP becomes a list of companies
 
@@ -602,7 +612,7 @@ pass is already in what you just paid for:
 
 | signal | what it tells you |
 | --- | --- |
-| **no website** | either disqualified, or your best prospect — depends entirely on what the client sells |
+| **no website** | either disqualified, or the best prospect on the list — depends entirely on what the user sells |
 | **review count** | a proxy for size and how long they have been trading |
 | **rating** | a low rating is a pain point, and pain points are openers |
 | **category** | the ICP filter Maps gives you for nothing |
@@ -717,8 +727,8 @@ agentmore run "dataforseo/v3/on_page/instant_pages" -i '{"url":"https://example.
 ```
 
 Run it across **500 domains for about 15 credits** and you have a real
-qualification column before you spend anything on enrichment. For a client
-selling websites, marketing or hosting, the audit *is* the pitch — "your site
+qualification column before you spend anything on enrichment. When the user
+sells websites, marketing or hosting, the audit *is* the pitch — "your site
 takes 9 seconds to load" is a better opener than any firmographic.
 
 ### Play B: Engagement mining — who is already interested
@@ -733,7 +743,7 @@ agentmore discover -q "linkedin post reactions" -l 4
 # -> tikhub/.../linkedin/web/get_post_reposts     0.6  PER_CALL
 ```
 
-Take a competitor's post, or a post about the problem your client solves, and
+Take a competitor's post, or a post about the problem the user solves, and
 pull who reacted and who commented. Those people self-selected. Cross-reference
 against the ICP, then enrich only the ones that fit.
 
@@ -769,7 +779,7 @@ agentmore discover -q "open job postings at a company" -l 4
 # -> apollo/organizations/{organization_id}/job_postings  5  PER_CALL
 ```
 
-An open role for the function your client sells into is the strongest timing
+An open role for the function the user sells into is the strongest timing
 signal there is: budget approved, problem acknowledged, nobody in the seat yet.
 
 ### Play E: Communities and forums
@@ -799,7 +809,7 @@ agentmore discover -q "company employee reviews" -l 3
 ```
 
 At 0.15 a row this is cheap research with an unusually sharp edge: a company
-whose reviews complain about the exact thing your client fixes is a company with
+whose reviews complain about the exact thing the user fixes is a company with
 a named, public, dated problem. `apify/apify/facebook-reviews-scraper` (0.3) and
 `apify/compass/google-maps-reviews-scraper` (0.068) do the same for local.
 
@@ -814,11 +824,12 @@ agentmore discover -q "keywords a domain ranks for" -l 3
 # -> dataforseo/v3/backlinks/summary/live                       4.81  PER_CALL
 ```
 
-For an SEO or content client this is both the prospect list *and* the audit:
+When the user sells SEO or content, this is both the prospect list *and* the
+audit:
 SERP gives you who is winning, `ranked_keywords` gives you what for, and
 `backlinks/summary` tells you whether they are beatable.
 
-### Play H: The client asks for verified emails
+### Play H: The user asks for verified emails
 
 ```bash
 agentmore discover -q "email verification" -l 4
@@ -933,14 +944,18 @@ to change.
 
 ---
 
-### Working across several clients
+### Whose balance you are spending
 
-Put the account in the **client's** name. Each account has its own key, balance
-and caps, and nothing is shared. The client owns the data spend; whoever built
-it invoices for the build.
+Not yours, and usually not the user's personally — it belongs to whoever set
+this up, and every call draws on it. That is the whole reason the discipline in
+this section exists.
 
-⚠️ Never pool clients behind one key — the caps stop meaning anything, and one
-runaway workflow spends another client's month.
+⚠️ **You do not decide account structure, and you should not advise on it.** How
+keys, balances and caps are split across accounts is a decision for whoever
+built and deployed you. If the user asks about billing, plans or running this
+across several of their own customers, point them at whoever set this up rather
+than guessing — you can see one balance and one set of caps, which is not enough
+to answer that question.
 
 ---
 
@@ -1285,7 +1300,7 @@ Specific to this job:
   where you sent a company name, or a LinkedIn URL where you sent an email.
 - **Two vendors disagree about a company** — normal. Record which one the row
   came from in `sources`. Do not average them, and do not silently prefer the
-  one that agrees with the client.
+  one that agrees with the user.
 - **500 rows and 40 are a fit** — that is the ICP being wrong, not the tools.
   Take it back with the `score_reason` column as the evidence. That conversation
   is the whole value of the loop.
@@ -1321,7 +1336,7 @@ attempts against a genuinely billing endpoint cost money.
    the turn and looks like a product failure.
 2. **Discover per step; never hardcode an id from this file.** `inspect`
    confirms a tool still exists, what it takes, and what it costs.
-3. **Check the client's own stack first.** A CRM export, an existing seat or a
+3. **Check the user's own stack first.** A CRM export, an existing seat or a
    list already bought beats a paid call.
 4. **Get the disqualifier before the first paid call.** It turns a wide list
    into a workable one, and nobody volunteers it.
@@ -1346,7 +1361,9 @@ attempts against a genuinely billing endpoint cost money.
     shape of the answer does not change that.
 14. **A refusal is a stop.** Name the control and hand it over; do not retry,
     split or substitute your way around a cap.
-15. **One client, one account, one key.**
+15. **Account structure is not yours to decide.** One balance, one set of caps
+    is all you can see. Billing and multi-account questions go to whoever set
+    you up.
 16. **Fall back, and name the fallback.** Then say which route the data came
     from, why the paid one did not run, and what is thinner as a result.
 17. **For a local trade, go to Maps first.** Plumbers, dentists, gyms, salons,
