@@ -535,13 +535,14 @@ const COMMAND_HELP = {
   Needs no API key — it is what tells you how to get one.
   --client records which agent is driving, for attribution. Never prompt for it.`,
   keys: `agentmore keys <add|list|activate|remove>
-  add       [-l <label>]                 Prompt for a key, hidden (first one becomes active)
-  add       -k <api-key> [-l <label>]    Same, but from argv — CI only, see below
+  add       -k <api-key> [-l <label>]    Add a key (first one becomes active)
+  add       [-l <label>]                 Same, but typed at a prompt with input hidden
   list                                   Show keys, masked
   activate  -l <label>                   Switch the active key
   remove    -l <label>                   Remove a key
-  Prefer the prompt: a key in -k is visible in ps, shell history, and an
-  agent's transcript. Use -k only where nobody can type — CI, a container.
+  Either form is fine. The prompt keeps the key out of argv and shell history,
+  so prefer it where a person is at a terminal; -k is the one that works in CI,
+  a container, or anywhere nobody can type.
   AGENTMORE_API_KEY overrides all of these when set.`,
   discover: `agentmore discover -q "<what you need>" [-l <limit>] [-s <min-score>]
   Rank the catalog against plain language. Free — calls nothing, spends nothing.
@@ -653,12 +654,12 @@ async function cmdSetup(flags) {
   // 2. Do we hold a key at all?
   if (!activeKey()) {
     console.log(`  ${red("✗")} no API key configured\n`);
-    console.log("  To finish setup, sign in — the browser does the approving:");
-    console.log(`    ${bold("agentmore login")}\n`);
-    console.log(dim("  Or, to use a long-lived key instead:"));
+    console.log("  To finish setup, add an API key:");
     console.log(dim("    1. Create an account at https://agentmore.app"));
     console.log(dim("    2. Copy a key from https://agentmore.app/app/api-keys"));
-    console.log(dim(`    3. ${bold("agentmore keys add -l main")} — it asks for the key, input hidden\n`));
+    console.log(`    3. ${bold("agentmore keys add -k <your-key> -l main")}\n`);
+    console.log(dim("  Or type it at a hidden prompt: agentmore keys add -l main"));
+    console.log(dim(`  Or sign in through the browser instead: ${bold("agentmore login")}\n`));
     // ⛔ There is NO top-up and no pay-per-call — credits come from a plan and
     // only from a plan. This block used to offer "start a plan and pay per call,
     // no subscription" alongside "a subscription", which is two descriptions of
@@ -976,12 +977,12 @@ async function cmdUsage(flags) {
 }
 
 /**
- * Read a secret from the terminal without it ever passing through argv.
+ * Read a secret from the terminal without it passing through argv.
  *
- * A key given as `-k <key>` is visible in `ps`, lands in shell history, and —
- * when an agent runs the command — is written verbatim into its transcript.
- * None of those are places a credential should live, so `keys add` with no `-k`
- * asks the terminal instead. Echo is suppressed while typing.
+ * An option, not a policy: `-k <key>` is the normal way in and stays fully
+ * supported. This exists because a key in argv is visible in `ps` and lands in
+ * shell history, which some users would rather avoid — so `keys add` with no
+ * `-k` asks the terminal instead, with echo suppressed while typing.
  *
  * Requires a real TTY on stdin. Without one there is nobody to type, so the
  * caller must fall back to `-k` or AGENTMORE_API_KEY rather than hang.
