@@ -3,6 +3,22 @@
 All notable changes to `@agentmore/cli`. This project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] — 2026-08-19
+
+### Security
+
+- **`agentmore keys add` now asks for the key on the terminal, with the input
+  hidden.** `-k <key>` was the only way in, which put the secret in `ps`, in
+  shell history, and — when an agent ran the command — verbatim into its
+  transcript. `-k` still works and is still correct where nobody can type (CI, a
+  container), but it is no longer what the help, `setup` or the skill file teach
+  first. Without a TTY the command explains the `-k` and `AGENTMORE_API_KEY`
+  fallbacks instead of hanging.
+- **`agentmore login` is now presented as the normal way in** across `--help`,
+  `help keys`, `setup` and the "no API key configured" error. It was already the
+  better path for anyone at their own terminal — the agent never handles a
+  secret — but it was documented as the alternative.
+
 ## [0.1.4] — 2026-08-12
 
 ### Fixed

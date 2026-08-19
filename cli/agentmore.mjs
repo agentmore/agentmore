@@ -51,6 +51,7 @@ import { homedir } from "node:os";
 import { spawn } from "node:child_process";
 import { join, dirname, resolve, sep, basename, extname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createInterface } from "node:readline";
 
 /**
  * Read from package.json rather than hardcoded, because a hand-maintained copy
@@ -232,8 +233,9 @@ async function callTool(name, args) {
   if (!key) {
     die(
       "No API key configured.\n" +
-        "  Get one at https://agentmore.app/app/api-keys, then:\n" +
-        "    agentmore keys add -k <your-api-key>",
+        "  Sign in:  agentmore login\n" +
+        "  Or create a key at https://agentmore.app/app/api-keys and type it in:\n" +
+        "    agentmore keys add",
     );
   }
   requireSecureBase();
@@ -442,11 +444,11 @@ const USAGE = `
 
   ${bold("Setup")}
     agentmore setup [--client <agent>]             Check install, host and key
-    agentmore keys add -k <key> [-l <label>]       Save an API key ${dim("(the usual way)")}
+    agentmore login [--days N]                     Sign in via the browser ${dim("(the usual way)")}
+    agentmore keys add [-l <label>]                Type a key in — input hidden
     agentmore keys list                            Show configured keys
     agentmore keys activate -l <label>             Switch the active key
     agentmore keys remove -l <label>               Remove a key
-    agentmore login [--days N]                     Sign in via the browser instead
     agentmore setup-token [--days N]               Print a token for CI (not saved)
     agentmore logout                               Forget a browser-issued token
 
@@ -533,10 +535,13 @@ const COMMAND_HELP = {
   Needs no API key — it is what tells you how to get one.
   --client records which agent is driving, for attribution. Never prompt for it.`,
   keys: `agentmore keys <add|list|activate|remove>
-  add       -k <api-key> [-l <label>]   Save a key (first one becomes active)
+  add       [-l <label>]                 Prompt for a key, hidden (first one becomes active)
+  add       -k <api-key> [-l <label>]    Same, but from argv — CI only, see below
   list                                   Show keys, masked
   activate  -l <label>                   Switch the active key
   remove    -l <label>                   Remove a key
+  Prefer the prompt: a key in -k is visible in ps, shell history, and an
+  agent's transcript. Use -k only where nobody can type — CI, a container.
   AGENTMORE_API_KEY overrides all of these when set.`,
   discover: `agentmore discover -q "<what you need>" [-l <limit>] [-s <min-score>]
   Rank the catalog against plain language. Free — calls nothing, spends nothing.
@@ -648,11 +653,12 @@ async function cmdSetup(flags) {
   // 2. Do we hold a key at all?
   if (!activeKey()) {
     console.log(`  ${red("✗")} no API key configured\n`);
-    console.log("  To finish setup:");
-    console.log("    1. Create an account at https://agentmore.app");
-    console.log("    2. Copy a key from https://agentmore.app/app/api-keys");
-    console.log(`    3. ${bold("agentmore keys add -k <your-api-key> -l main")}\n`);
-    console.log(dim(`  Or sign in through the browser instead: ${bold("agentmore login")}\n`));
+    console.log("  To finish setup, sign in — the browser does the approving:");
+    console.log(`    ${bold("agentmore login")}\n`);
+    console.log(dim("  Or, to use a long-lived key instead:"));
+    console.log(dim("    1. Create an account at https://agentmore.app"));
+    console.log(dim("    2. Copy a key from https://agentmore.app/app/api-keys"));
+    console.log(dim(`    3. ${bold("agentmore keys add -l main")} — it asks for the key, input hidden\n`));
     // ⛔ There is NO top-up and no pay-per-call — credits come from a plan and
     // only from a plan. This block used to offer "start a plan and pay per call,
     // no subscription" alongside "a subscription", which is two descriptions of
@@ -969,13 +975,63 @@ async function cmdUsage(flags) {
 
 }
 
+/**
+ * Read a secret from the terminal without it ever passing through argv.
+ *
+ * A key given as `-k <key>` is visible in `ps`, lands in shell history, and —
+ * when an agent runs the command — is written verbatim into its transcript.
+ * None of those are places a credential should live, so `keys add` with no `-k`
+ * asks the terminal instead. Echo is suppressed while typing.
+ *
+ * Requires a real TTY on stdin. Without one there is nobody to type, so the
+ * caller must fall back to `-k` or AGENTMORE_API_KEY rather than hang.
+ */
+function promptSecret(label) {
+  return new Promise((resolve, reject) => {
+    if (!process.stdin.isTTY) {
+      reject(new Error("not a tty"));
+      return;
+    }
+    const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+    // Swallow the echoed characters, but keep printing the prompt itself.
+    let muted = false;
+    const write = rl._writeToOutput?.bind(rl);
+    rl._writeToOutput = (str) => {
+      if (muted) return;
+      if (write) write(str);
+      else process.stdout.write(str);
+    };
+    rl.question(label, (answer) => {
+      rl._writeToOutput = write;
+      rl.close();
+      process.stdout.write("\n");
+      resolve(answer.trim());
+    });
+    muted = true;
+  });
+}
+
 async function cmdKeys(rest, flags) {
   const sub = rest.shift();
   const cfg = readConfig();
 
   if (sub === "add") {
-    const key = pick(flags, "k", "key");
-    if (typeof key !== "string") die('agentmore keys add needs -k "<api-key>"');
+    let key = pick(flags, "k", "key");
+    if (typeof key !== "string") {
+      // Preferred path: the human types it, so the secret never enters argv,
+      // shell history, or an agent's transcript. See promptSecret().
+      try {
+        key = await promptSecret("Paste your AgentMore API key (input hidden): ");
+      } catch {
+        die(
+          "agentmore keys add needs a terminal to type the key into.\n" +
+            "  With no TTY, pass it explicitly instead:\n" +
+            "    agentmore keys add -k <your-api-key>\n" +
+            "  or set AGENTMORE_API_KEY in the environment.",
+        );
+      }
+      if (!key) die("No key entered.");
+    }
     const label = String(pick(flags, "l", "label") ?? "main");
     cfg.keys = cfg.keys.filter((k) => k.label !== label);
     cfg.keys.push({ label, key });
@@ -987,7 +1043,7 @@ async function cmdKeys(rest, flags) {
 
   if (sub === "list") {
     if (!cfg.keys.length) {
-      console.log("No keys configured. Add one with: agentmore keys add -k <api-key>");
+      console.log("No keys configured. Sign in with: agentmore login   (or type a key in: agentmore keys add)");
       return;
     }
     for (const k of cfg.keys) {

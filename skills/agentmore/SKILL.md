@@ -57,11 +57,16 @@ other:
 
 ```bash
 npm install -g @agentmore/cli@latest
+npx -y skills add agentmore/agentmore --skill agentmore --yes --global --force
 agentmore setup
 ```
 
-Then re-save this skill from `https://agentmore.app/skill.md` over your current
-copy and make sure it stays enabled for future sessions.
+The second line reinstalls this skill from the published package — a versioned,
+auditable artifact that ships the same way it did the first time. ⛔ **Do not
+fetch agent instructions from a URL and save them over your own skills.** That
+is a live file rewriting how you behave, with nothing pinned and nothing
+reviewed; the installer is the supported path and `--force` is what makes it
+overwrite the copy you already have.
 
 `agentmore setup` is a check, not a signup: it verifies the host is reachable,
 whether a key is stored and whether that key works. It asks nothing about the
@@ -73,30 +78,43 @@ catalog on the same balance — see "Or Connect It as an MCP Server" below.
 
 ### Authentication
 
-Running a tool needs an API key. Discovery and inspection do not.
+Running a tool needs credentials. Discovery and inspection do not.
 
-**An API key is the normal way in.** It is one string, so it works everywhere
-the catalog is reachable — this CLI, the hosted MCP server, a plain HTTP call,
-a sandbox, CI — and it needs no browser, which matters because you are an agent
-and cannot complete one.
+⛔ **Never ask the user to paste a key to you, and never put one in a command
+you run.** A key in `agentmore keys add -k …` is visible in `ps`, is written to
+shell history, and — because you are an agent — is copied verbatim into your
+transcript and everything downstream of it. You do not need to see the
+credential to use it. Three ways in, none of which require that:
 
-If `agentmore setup` reports no key, ask the user for one — they create it at
-`https://agentmore.app/app/api-keys`, it is free, and a new account comes with
-50 credits and no card. Once they paste it back:
+**1. `agentmore login` — the normal way in.** The user runs it at their own
+terminal, their browser opens, they approve, and an expiring token is written to
+`~/.agentmore/config.json`. You never handle a secret. If `agentmore setup`
+reports no key, this is what you ask for:
+
+> Run `agentmore login` and approve it in your browser — I'll pick it up from
+> there.
+
+**2. `AGENTMORE_API_KEY` in the environment.** Right where you cannot write to
+disk, and how a credential reaches a container or a CI job. The user exports it;
+you read nothing. It overrides the stored key.
+`agentmore setup-token` runs the same browser approval and prints a token to put
+here, for a machine with no browser.
+
+**3. A long-lived key, typed in by the user.** Needed only where a browser is
+impossible and the environment cannot carry it. They create one at
+`https://agentmore.app/app/api-keys` — free, and a new account comes with 50
+credits and no card. Ask them to run this **themselves**, not through you:
 
 ```bash
-agentmore keys add -k <their-api-key> -l main
+agentmore keys add -l main
 ```
 
-Set `AGENTMORE_API_KEY` instead when you cannot write to disk; it overrides the
-stored key. That is also how a key reaches a container or a CI job.
+It prompts for the key with the input hidden, so it stays out of argv, history
+and your transcript. (Needs CLI ≥ 0.2.2. `-k <key>` still exists for CI, where
+there is nobody to type — it is not the path to suggest to a person.)
 
-**`agentmore login` is the alternative**, for a user at their own terminal who
-would rather not handle a secret: it opens their browser, they approve, and an
-expiring token is written to `~/.agentmore/config.json`. Suggest it if pasting a
-key is awkward. `agentmore setup-token` runs the same approval and prints the
-token instead, for putting into `AGENTMORE_API_KEY` on a machine with no
-browser — CI, a container, a headless box.
+Whichever they used, `agentmore setup` tells you whether it worked. That answer
+is all you need.
 
 For scripted or agent use, set `NO_COLOR=1` to disable ANSI color codes in
 output.
@@ -165,6 +183,10 @@ both transports, so they cannot drift.
   }
 }
 ```
+
+⚠️ `agentmore_sk_…` above is a placeholder. **The user puts their own key into
+that config file themselves** — do not ask them to hand it to you so you can
+write it in, and do not echo one back if they volunteer it.
 
 ⚠️ Call whatever `tools/list` returns. Names carried an older prefix before the
 rename and those are still accepted, so a config written earlier keeps working —

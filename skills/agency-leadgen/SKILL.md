@@ -49,7 +49,7 @@ below — no per-vendor signup, no vendor credentials on this machine — and ev
 call has a known price that settles against one balance.
 
 ⚠️ **This file is self-contained.** It carries the whole command surface — the
-CLI, discovery, running, polling, refusals, files, keys and costs — as well as
+CLI, discovery, running, polling, refusals, keys and costs — as well as
 the job itself. You do not need any other AgentMore skill loaded alongside it.
 
 ⚠️ **It carries the JOB, not a frozen tool list.** The order to work in, what to
@@ -193,11 +193,18 @@ A check, not a signup: it confirms the host is reachable, whether a key is
 stored, and whether that key works. It asks nothing about the user, so never
 stop on it to ask a question.
 
-If it reports no key, **ask whoever set this up** — the account holder. Then:
+If it reports no key, **ask whoever set this up** — the account holder — to run
+this themselves at their own terminal:
 
 ```bash
-agentmore keys add -k <the-key> -l main
+agentmore login
 ```
+
+Their browser opens, they approve, and a token is stored. ⛔ **Never ask for the
+key itself and never put one in a command you run** — a key in
+`agentmore keys add -k …` is visible in `ps`, in shell history, and verbatim in
+your transcript. You do not need to see it. If they want a long-lived key
+instead, `agentmore keys add -l main` prompts them for it with the input hidden.
 
 Use `AGENTMORE_API_KEY` instead where you cannot write to disk — a container, a
 CI job, a sandbox. It overrides the stored key.
@@ -400,20 +407,10 @@ Each command supports `--help` for full usage. Here's what's available:
 | `agentmore login` | Browser approval; saves an expiring, tool-scoped token |
 | `agentmore setup-token` | Same approval, but prints the token instead of saving it (CI) |
 | `agentmore logout` | Forget the token stored on this machine |
-| `agentmore keys add` | Save an API key (`-k <key>`, `-l <label>`; the first becomes active) |
+| `agentmore keys add` | Save an API key — prompts for it, input hidden (`-l <label>`; the first becomes active) |
 | `agentmore keys list` | Show configured keys, masked |
 | `agentmore keys activate` | Switch the active key (`-l <label>`) |
 | `agentmore keys remove` | Remove a key (`-l <label>`, `-f` to skip confirmation) |
-| `agentmore files put` | Upload a local file (`--as <path>` to rename it). Free. |
-| `agentmore files url` | Mint a URL anything can fetch (`--ttl 1h\|6h\|1d\|7d`). Free. |
-| `agentmore files get` | Download one back (`-o <local-file>`). Free. |
-| `agentmore files ls` | What you are storing, and how much space is left. Free. |
-| `agentmore files rm` | Delete one (`agentmore files rm "<path>"`). Free. |
-| `agentmore files mv` | Move or rename (`agentmore files mv "<from>" "<to>"`). Free. |
-| `agentmore files usage` | Space used of your quota, and the per-file limit. Free. |
-| `agentmore skills` | Every published skill. Free, no key. ⛔ You do not need another one — see [Stay Inside the Job](#stay-inside-the-job). |
-| `agentmore skill` | One skill in full, with the line to paste into an agent (`agentmore skill "<id>"`). Free. |
-| `agentmore install` | Write a skill's file into your agent's skills directory (`-d <dir>`, `--force`). |
 
 Most commands accept `-j/--json` for machine-readable JSON output; `discover`,
 `inspect`, `estimate` and `run` return JSON already.
@@ -1274,50 +1271,10 @@ problem the user cannot see.
 
 ---
 
-## Files — Give a Tool Something to Fetch
-
-A private space for the files a tool needs to reach. **It costs nothing** — no
-call is made, no balance is touched — and it is bounded by space, not spend.
-
-| | |
-| --- | --- |
-| Quota | 1 GB per account |
-| Per file | 200 MB |
-| URL lifetime | `1h` (default), `6h`, `1d`, `7d` — 7d is a hard ceiling |
-| Retention | Nothing expires on its own; `rm` is how space comes back |
-
-```bash
-agentmore files put <file> [--as <path>]     # upload
-agentmore files url "<path>" [--ttl 1d]      # mint a fetchable URL
-agentmore files get "<path>" -o <file>       # download it again
-agentmore files ls [prefix]                  # what you are storing
-agentmore files rm "<path>"                  # delete one
-agentmore files mv "<from>" "<to>"           # move or rename
-agentmore files usage                        # space used of your quota
-```
-
-What to know before using it:
-
-- **Your files are yours.** Every path is stored under your own account, and
-  there is no path you can pass that reaches anyone else's — a `..` or a
-  leading `/` is refused rather than cleaned up.
-- **A minted URL is a credential.** Anyone holding it can read that one file
-  until it expires. Hand it to the tool that needs it; do not paste it into
-  something durable, and prefer a short TTL.
-- **Declare the real size.** `put` does that for you. The upload link is bound
-  to the exact byte count, so a file that grew between the two steps is
-  rejected rather than half-written.
-- **Upload only what the task needs.** It is a workbench for feeding tools, not
-  a backup — and the quota is shared across everything you leave there.
-
----
-
----
-
 ## Key Management
 
 ```bash
-agentmore keys add -k <api-key> -l <label>   # Add a key (first key is auto-activated)
+agentmore keys add -l <label>                # Add a key — it prompts, input hidden
 agentmore keys list                          # Show all configured keys, masked
 agentmore keys activate -l <label>           # Switch the active key
 agentmore keys remove -l <label>             # Remove a key (use -f to skip confirmation)
