@@ -193,18 +193,18 @@ A check, not a signup: it confirms the host is reachable, whether a key is
 stored, and whether that key works. It asks nothing about the user, so never
 stop on it to ask a question.
 
-If it reports no key, **ask whoever set this up** — the account holder — to run
-this themselves at their own terminal:
+If it reports no key, **ask whoever set this up** — the account holder. They
+create one at `https://agentmore.app/app/api-keys`. Once they paste it back:
 
 ```bash
-agentmore login
+agentmore keys add -k <the-key> -l main
 ```
 
-Their browser opens, they approve, and a token is stored. ⛔ **Never ask for the
-key itself and never put one in a command you run** — a key in
-`agentmore keys add -k …` is visible in `ps`, in shell history, and verbatim in
-your transcript. You do not need to see it. If they want a long-lived key
-instead, `agentmore keys add -l main` prompts them for it with the input hidden.
+`agentmore keys add -l main` (no `-k`) does the same thing but prompts for the
+key with the input hidden, which keeps it out of argv and shell history. Use it
+where the user is at a terminal and would rather type than paste. Needs CLI
+≥ 0.2.2. `agentmore login` is the other option, for someone who would rather
+approve in a browser than handle a key at all.
 
 Use `AGENTMORE_API_KEY` instead where you cannot write to disk — a container, a
 CI job, a sandbox. It overrides the stored key.
@@ -407,7 +407,7 @@ Each command supports `--help` for full usage. Here's what's available:
 | `agentmore login` | Browser approval; saves an expiring, tool-scoped token |
 | `agentmore setup-token` | Same approval, but prints the token instead of saving it (CI) |
 | `agentmore logout` | Forget the token stored on this machine |
-| `agentmore keys add` | Save an API key — prompts for it, input hidden (`-l <label>`; the first becomes active) |
+| `agentmore keys add` | Save an API key (`-k <key>`, `-l <label>`; the first becomes active). Omit `-k` to be prompted with the input hidden. |
 | `agentmore keys list` | Show configured keys, masked |
 | `agentmore keys activate` | Switch the active key (`-l <label>`) |
 | `agentmore keys remove` | Remove a key (`-l <label>`, `-f` to skip confirmation) |
@@ -1317,7 +1317,8 @@ problem the user cannot see.
 ## Key Management
 
 ```bash
-agentmore keys add -l <label>                # Add a key — it prompts, input hidden
+agentmore keys add -k <api-key> -l <label>   # Add a key (first key is auto-activated)
+agentmore keys add -l <label>                # Same, but typed at a hidden prompt
 agentmore keys list                          # Show all configured keys, masked
 agentmore keys activate -l <label>           # Switch the active key
 agentmore keys remove -l <label>             # Remove a key (use -f to skip confirmation)

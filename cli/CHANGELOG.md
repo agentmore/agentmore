@@ -3,6 +3,18 @@
 All notable changes to `@agentmore/cli`. This project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] — 2026-08-19
+
+### Changed
+
+- **Pasting an API key is documented as the normal way in again.** 0.2.2's help,
+  `setup` and error text presented `-k` as a CI-only fallback and pushed the
+  hidden prompt and `agentmore login` ahead of it. That is not how AgentMore
+  works — a pasted key is the primary path, and the copy now says so in
+  `--help`, `help keys`, `setup` and the "No API key configured" error.
+- The hidden prompt (`agentmore keys add` with no `-k`) is unchanged and still
+  available. It is offered as an option for someone at a terminal, not as a rule.
+
 ## [0.2.2] — 2026-08-19
 
 ### Security

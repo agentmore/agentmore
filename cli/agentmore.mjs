@@ -233,9 +233,8 @@ async function callTool(name, args) {
   if (!key) {
     die(
       "No API key configured.\n" +
-        "  Sign in:  agentmore login\n" +
-        "  Or create a key at https://agentmore.app/app/api-keys and type it in:\n" +
-        "    agentmore keys add",
+        "  Get one at https://agentmore.app/app/api-keys, then:\n" +
+        "    agentmore keys add -k <your-api-key>",
     );
   }
   requireSecureBase();
@@ -444,11 +443,11 @@ const USAGE = `
 
   ${bold("Setup")}
     agentmore setup [--client <agent>]             Check install, host and key
-    agentmore login [--days N]                     Sign in via the browser ${dim("(the usual way)")}
-    agentmore keys add [-l <label>]                Type a key in — input hidden
+    agentmore keys add -k <key> [-l <label>]       Save an API key ${dim("(the usual way)")}
     agentmore keys list                            Show configured keys
     agentmore keys activate -l <label>             Switch the active key
     agentmore keys remove -l <label>               Remove a key
+    agentmore login [--days N]                     Sign in via the browser instead
     agentmore setup-token [--days N]               Print a token for CI (not saved)
     agentmore logout                               Forget a browser-issued token
 
