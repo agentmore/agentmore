@@ -1,6 +1,6 @@
 ---
 name: agency-leadgen
-version: 0.5.0
+version: 0.6.0
 description: >-
   Find companies and the people inside them, then enrich, research and qualify
   them into leads. Proactively load this before writing a scraper for company or
@@ -578,7 +578,26 @@ first paid call:
 | **Size** — headcount or revenue band | second biggest |
 | **A disqualifier** — what makes a company *not* a fit | ⚠️ the field everyone skips, and the one that turns 500 rows into the 60 worth working |
 | **How many** they want | sets the limit on every call |
+| **What the user SELLS** | ⚠️ decides which signals qualify and which disqualify — see below |
 | **What the output is for** | sets the columns, and whether email matters at all |
+
+⚠️ **THE OFFER DECIDES WHAT COUNTS AS A GOOD LEAD. ASK WHAT THEY SELL.**
+This is lead-gen for *any* offer, and a qualification signal is only good or bad
+relative to what is being sold. The same fact flips:
+
+| the fact | selling websites or marketing | selling something else |
+| --- | --- | --- |
+| **no website** | the best prospect on the list | often a disqualifier, or nothing at all |
+| **a slow, broken site** | the pitch, in one sentence | irrelevant |
+| **a beautiful modern site** | nothing to sell them | a sign they invest, and can pay |
+| **hiring 6 roles** | mildly interesting | the buying signal, if you sell to that function |
+| **bad reviews about wait times** | little | everything, if you sell scheduling or staff |
+
+So do not reach for a site audit by reflex. **Pick the signal the offer makes
+expensive to ignore**, and say which one you picked and why. If the user has not
+said what they sell, ask — it is one question, and it changes the whole list.
+If they will not say, choose the signal out loud and mark the rows so the
+judgment is visible and reversible.
 
 If a field cannot be answered, **choose a default out loud** rather than
 guessing silently. A list nobody can debug is a list nobody trusts.
@@ -606,6 +625,10 @@ Seven steps, in this order — each narrows the set the next one pays for.
 **Step 4 saves the money and is free.** Scoring is your own reasoning over
 records already paid for. Enriching 500 rows to keep 60 is paying eight times
 over — score first, enrich what survives.
+
+⚠️ **Score against the OFFER, not against a general idea of a good business.** A
+thriving practice with a perfect site is a top lead for a supplier and a dead
+one for a web agency. Whatever you score on, put the reason on the row.
 
 **Step 6 wastes it.** A hook is one specific true sentence. A dossier is not
 more persuasive, only more expensive.
@@ -806,9 +829,26 @@ scraping the homepage and hoping. Cheaper first passes: `exa/search` (1) answers
 
 ### Play A: Qualify a whole list for almost nothing
 
-`dataforseo/v3/on_page/instant_pages` is **0.03 credits per call** — the
-cheapest endpoint in this whole job. It audits one page: does the site load, is
-it broken, is it ancient, does it have the basics.
+⚠️ **Pick the instrument from the offer.** The cheap-qualifier idea is general;
+the endpoint is not. Choose the column that would change the user's mind about a
+row, then find the cheapest way to fill it:
+
+| if the user sells… | the qualifying column | cheap instrument to discover |
+| --- | --- | --- |
+| websites, SEO, hosting | is their site any good | `on page audit instant` |
+| staffing, recruitment, training | are they hiring, and for what | `open job postings at a company` |
+| scheduling, CX, ops software | what customers complain about | `google maps reviews` |
+| anything sold to a function | is that function staffed | `linkedin company employees` |
+| tools priced on size | headcount and revenue band | already on the search record |
+| a service for the growing | funding, ads, new locations | `company news and funding`, ad libraries |
+
+Whatever you pick, the discipline is the same: **one cheap call per row across
+the whole list, before any per-row enrichment.**
+
+**The web-audit version**, because it is the cheapest endpoint in the whole job:
+`dataforseo/v3/on_page/instant_pages` at **0.03 credits per call**. It audits
+one page — does the site load, is it broken, is it ancient, does it have the
+basics.
 
 ```bash
 agentmore inspect "dataforseo/v3/on_page/instant_pages"
@@ -818,7 +858,10 @@ agentmore run "dataforseo/v3/on_page/instant_pages" -i '{"url":"https://example.
 Run it across **500 domains for about 15 credits** and you have a real
 qualification column before you spend anything on enrichment. When the user
 sells websites, marketing or hosting, the audit *is* the pitch — "your site
-takes 9 seconds to load" is a better opener than any firmographic.
+takes 9 seconds to load" is a better opener than any firmographic. ⚠️ **When
+they sell anything else, this column is decoration** — a lead does not become
+good because their H1 is missing. Score the column that matches the offer, and
+skip this one.
 
 ### Play B: Engagement mining — who is already interested
 
