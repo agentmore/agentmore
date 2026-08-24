@@ -16,13 +16,18 @@ the catalog almost certainly already does the job.
 ## The workflow
 
 ```bash
-agentmore discover -q "<what you need>"     # free — ranks the catalog
-agentmore inspect "<tool id>"               # free — schema, price, caveats
+agentmore discover -q "<what you need>"     # ranks the catalog, spends nothing
+agentmore inspect "<tool id>"               # schema, price, caveats
 agentmore run "<tool id>" -i '{…}' --dry    # price it without spending
 agentmore run "<tool id>" -i '{…}' -w       # execute it
 ```
 
-Discovery and inspection are free and need no key. `run` spends.
+Everything here needs an API key, discovery included — `agentmore setup` first.
+Discovery and inspection still **spend nothing** and work on an empty balance;
+the key says who is asking, it does not buy the lookup. Only `run` spends.
+
+⚠️ Discovery required no key before 0.3.0. Upgrade: a 0.2.x client sends none
+and gets a bare `401` from `discover` and `inspect`.
 
 ## Commands
 
@@ -50,19 +55,21 @@ Most work is a tool. Skills exist for the few capabilities that aren't.
 
 ## Paying for it
 
-Everything is priced in **credits**. Most tools cost well under one credit, so
-decimals are normal — `0.15 credits` is a real price, not a rounding error.
+Everything is priced in **US dollars**. Most tools cost well under a cent, so
+small decimals are normal — `$0.0015` is a real price, not a rounding error.
+The catalog spans `$0.00015` to `$5.60`; the median tool is `$0.003`.
 
-Every account starts with 50 free credits. After that, credits come from a plan
-and only from a plan — there is no top-up, so running out is a hard stop until
-the plan renews.
+Every account starts with **$0.50 of free balance**. After that it is pay as you
+go: add funds with a card at <https://agentmore.app/app/wallet> and spend what
+you use. There is no plan, no tier and no monthly allowance, so running out is a
+hard stop until you add funds.
 
-| plan | price | credits a month |
-| --- | --- | --- |
-| Free | — | 50 on signup |
-| Start | $9 | 1,000 |
-| Pro | $19 | 2,500 |
-| Master | $25 | 3,500 |
+Optional **auto-reload** — "when my balance drops below $X, charge me $Y again" —
+keeps a long agent run from stalling halfway.
+
+An agent with no account at all can pay per call over x402 or MPP: no signup, no
+API key. That path is for agents that pay per call, and nothing has settled
+through it yet.
 
 Every call is priced before it runs, refused when the worst case can't be
 priced, and capped per call and per day. You are never charged for no result.

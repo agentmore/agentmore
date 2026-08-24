@@ -35,8 +35,17 @@
  * frames rather than assuming a bare JSON body.
  *
  * `discover`, `inspect` and everything under `skills` are the exception: they
- * take the PUBLIC HTTP routes, because they are free and must work with no key
- * at all — which the bearer-only MCP endpoint could not do.
+ * take the plain HTTP routes rather than the MCP endpoint.
+ *
+ * ⚠️ **THEY NEED A KEY AS OF 0.3.0** (server-side change, 2026-08-24). They used
+ * to work with no key at all, and that is why they are on the REST routes in the
+ * first place. They still SPEND NOTHING — the key identifies the caller, it does
+ * not buy the lookup — but a machine holding no key now gets the "run agentmore
+ * setup" refusal instead of results. ⛔ Do not send these back through an
+ * unauthenticated path to "fix" a 401: the gate is deliberate.
+ *
+ * The one thing still genuinely keyless is fetching a published SKILL.md by its
+ * public URL (`install`), because a skill file has no key to present.
  *
  * ── WHAT THIS DOES NOT DO ────────────────────────────────────────────────────
  * It holds no vendor credentials and never talks to a vendor. Every call runs
@@ -451,7 +460,7 @@ const USAGE = `
     agentmore setup-token [--days N]               Print a token for CI (not saved)
     agentmore logout                               Forget a browser-issued token
 
-  ${bold("Find a tool")}    ${dim("free — no key needed, nothing is spent")}
+  ${bold("Find a tool")}    ${dim("needs a key — but spends nothing")}
     agentmore discover -q "<need>" [-l N] [-s N]   Search in plain language
     agentmore inspect "<tool id>"                  Input schema, price, caveats
     agentmore stats                                Catalog size
@@ -579,11 +588,12 @@ const COMMAND_HELP = {
   blocks again.`,
   skills: `agentmore skills [-j]
   Every published skill: a whole capability you load into an agent, rather than
-  a single call you run. Free, no key.
+  a single call you run. Needs a key; spends nothing.
   ⚠️ Not the same thing as a tool. A tool is one endpoint you run; a skill is
   a file your agent reads to learn a job end to end. Most work is a tool.`,
   skill: `agentmore skill "<skill id>" [-j]
-  One skill in full, with the exact line to paste into your agent. Free.`,
+  One skill in full, with the exact line to paste into your agent. Needs a key;
+  spends nothing.`,
   install: `agentmore install "<skill id>" [-d <dir>] [--client <agent>]
   Download the skill's file and write it to <dir>/<id>/SKILL.md.
   Default dir follows --client (claude → .claude/skills, codex → .codex/skills,
@@ -1134,7 +1144,7 @@ function printSkill(s, indent = "  ") {
 }
 
 async function cmdSkills(flags) {
-  const d = await restGet("/api/skill-catalog", { auth: false });
+  const d = await restGet("/api/skill-catalog");
   const skills = d.skills ?? [];
   if (flags.j || flags.json) return void emit(skills, flags);
   if (!skills.length) return void console.log("\n  Nothing published.\n");
@@ -1146,7 +1156,7 @@ async function cmdSkills(flags) {
 async function cmdSkill(rest, flags) {
   const id = rest.shift();
   if (!id) die('agentmore skill needs an id, e.g. agentmore skill "gauntlet-loop"');
-  const s = await restGet(`/api/skill-catalog/inspect?id=${encodeURIComponent(id)}`, { auth: false });
+  const s = await restGet(`/api/skill-catalog/inspect?id=${encodeURIComponent(id)}`);
   if (flags.j || flags.json) return void emit(s, flags);
   console.log(`\n  ${bold(s.name)}  ${dim(s.id)}`);
   if (s.status === "retired") console.log(`  ${red("Retired")} ${dim("— the file still serves, but its runtime is gone.")}`);
@@ -1172,7 +1182,7 @@ async function cmdSkill(rest, flags) {
 async function cmdInstall(rest, flags) {
   const id = rest.shift();
   if (!id) die('agentmore install needs a skill id');
-  const s = await restGet(`/api/skill-catalog/inspect?id=${encodeURIComponent(id)}`, { auth: false });
+  const s = await restGet(`/api/skill-catalog/inspect?id=${encodeURIComponent(id)}`);
   if (s.status === "retired") {
     die(`"${s.id}" is retired — its runtime no longer exists, so installing it would teach your agent a command that fails.`, 2);
   }
@@ -1259,7 +1269,7 @@ async function main() {
       const qs = new URLSearchParams({ q: query });
       if (limit) qs.set("limit", String(Number(limit)));
       if (minScore) qs.set("minScore", String(Number(minScore)));
-      const found = await restGet(`/api/supertool/discover?${qs}`, { auth: false });
+      const found = await restGet(`/api/supertool/discover?${qs}`);
       emit(found, flags);
       // `/discover` answers { count, results } — NOT { tools }.
       const top = Array.isArray(found?.results) ? found.results[0] : null;
@@ -1278,7 +1288,7 @@ async function main() {
     case "inspect": {
       const id = rest[0] ?? pick(flags, "i", "id");
       if (typeof id !== "string") die("agentmore inspect needs a tool id — the `id` field from `agentmore discover`");
-      const tool = await restGet(`/api/supertool/inspect?id=${encodeURIComponent(id)}`, { auth: false });
+      const tool = await restGet(`/api/supertool/inspect?id=${encodeURIComponent(id)}`);
       emit(tool, flags);
       hints(
         [

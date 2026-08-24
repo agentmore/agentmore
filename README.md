@@ -108,7 +108,7 @@ at <https://agentmore.app/app/api-keys>.
 **Reading is free and needs no sign-in at all** — searching the catalog,
 inspecting a tool's input schema and reading its price are anonymous. You only
 authenticate to *run* a tool, because running one spends money. Every new
-account starts with 50 free credits.
+account starts with $0.50 of free balance.
 
 If you would rather use a long-lived key directly — CI, a container, a headless
 box — mint one at the link above and set `AGENTMORE_API_KEY`, or add

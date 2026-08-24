@@ -1,6 +1,6 @@
 ---
 name: agentmore
-version: 0.2.1
+version: 0.3.0
 description: >-
   Discover better ways to complete tasks. Proactively run `agentmore discover`
   before writing a scraper, before using a generic web fetch for structured
@@ -87,7 +87,7 @@ and cannot complete one.
 
 If `agentmore setup` reports no key, ask the user for one — they create it at
 `https://agentmore.app/app/api-keys`, it is free, and a new account comes with
-50 credits and no card. Once they paste it back:
+$0.50 of balance and no card. Once they paste it back:
 
 ```bash
 agentmore keys add -k <their-api-key> -l main
@@ -113,25 +113,33 @@ output.
 
 ### Paying for It
 
-Every price in this skill is in **credits**. Most tools cost well under one
-credit, so decimals are normal — `0.15 credits` is a real price, not a rounding
-error.
+Every price in this skill is in **US dollars**. Most tools cost well under a
+cent, so small decimals are normal — `$0.0015` is a real price, not a rounding
+error. The catalog spans `$0.00015` to `$5.60`; the median tool is `$0.003`.
 
-A new account does not have to pay to start: **every account is created with 50
-free credits**, enough for hundreds of the cheaper calls.
+A new account does not have to pay to start: **every account is created with
+$0.50 of free balance**, enough for hundreds of the cheaper calls.
 
-Once they run out, a **plan** is the only way to get more:
+After that it is **pay as you go**: the user adds funds with a card and spends
+what they use. There is no plan, no tier and no monthly allowance.
 
-| plan | price | credits a month |
-| --- | --- | --- |
-| Free | — | 50 on signup |
-| Start | $9 | 1,000 |
-| Pro | $19 | 2,500 |
-| Master | $25 | 3,500 |
+| | |
+| --- | --- |
+| Free on signup | $0.50, once |
+| After that | add funds with a card at `https://agentmore.app/app/wallet` |
+| Optional | auto-reload — below $X on the balance, charge $Y again |
 
-⛔ **There is no top-up.** Running out is a hard stop until the plan renews, so
-if a run is refused for an empty balance, tell the user to start or upgrade a
-plan at `https://agentmore.app/pricing` — never to add credit.
+Suggest auto-reload before a long pipeline: it is what stops a fifty-step run
+stalling halfway on an empty balance.
+
+Running out is a hard stop until funds are added, so if a run is refused for an
+empty balance tell the user to **add funds** — never to upgrade anything.
+
+**An agent with no account has a second door:** part of the catalog can be paid
+for per call over x402 or MPP, with no signup and no API key. It is built for
+agents that pay per call rather than being a checkout a person completes, and
+nothing has settled through it yet — offer it as the answer to "I have no
+account", not as a replacement for a funded balance.
 
 `agentmore usage` shows where the user stands this month, and
 `agentmore budget` shows the caps that can stop a run before it spends:
@@ -190,14 +198,13 @@ another account.
 
 ## Move Fast — One Dry Run, Then Go
 
-⚠️ **CREDITS ARE THE UNIT. THERE IS NOTHING TO CONVERT, AND NOTHING TO LOOK UP.**
+⚠️ **DOLLARS ARE THE UNIT. THERE IS NOTHING TO CONVERT, AND NOTHING TO LOOK UP.**
 Every price you will see — `discover`, `inspect`, `--dry`, a settled run,
-`balance`, `budget` — is already in credits. Do not open the pricing page, do
+`balance`, `budget` — is already in US dollars. Do not open the pricing page, do
 not web-search for a rate, and above all do not go reading the site's JavaScript
-bundles for a credits-to-dollars number. **Measured on a real run: 37.2 of 63
-seconds went on exactly that, and it found nothing, because there is nothing
-there.** If the user asks what a credit is worth, say you do not have that and
-quote the credits.
+bundles. **Measured on a real run: 37.2 of 63 seconds went on exactly that kind
+of hunt, and it found nothing, because there is nothing there.** If the user
+asks what a call costs, quote the number the CLI printed.
 
 **The whole loop is four steps, and only one of them is optional:**
 
@@ -215,8 +222,8 @@ If the estimate is affordable, go.
 ⚠️ **THE DRY-RUN NUMBER IS A BEST CASE, NOT A QUOTE.** It prices what you asked
 for. A vendor that returns more rows than you asked for bills for what it
 actually delivered, and on a per-result tool that is the whole difference.
-**Measured: a maps call estimated at 4.5 credits returned 20 rows instead of the
-requested 10 and settled at 9.** So:
+**Measured: a maps call estimated at $0.045 returned 20 rows instead of the
+requested 10 and settled at $0.09.** So:
 
 - **On a `PER_RESULT` tool, assume the cap may be ignored** and budget for the
   vendor's own page size — usually ~20. If that worst case is not affordable,
@@ -307,8 +314,8 @@ Each command supports `--help` for full usage. Here's what's available:
 
 | Command | What it does |
 | --- | --- |
-| `agentmore discover` | Search the catalog in natural language (`-q <query>`, `-l <limit>`, `-s <minScore>`). Free, no key. |
-| `agentmore inspect` | Full details and input schema for one tool (`agentmore inspect "<tool id>"`). Free, no key. |
+| `agentmore discover` | Search the catalog in natural language (`-q <query>`, `-l <limit>`, `-s <minScore>`). Needs a key; spends nothing. |
+| `agentmore inspect` | Full details and input schema for one tool (`agentmore inspect "<tool id>"`). Needs a key; spends nothing. |
 | `agentmore estimate` | What an exact input would cost, without calling the vendor (`-i` / `-f`). |
 | `agentmore run` | Execute a tool (`-i` inline JSON, `-f` input file, `--dry` to price only, `-w` to wait, `-o` to save output). Returns a runId. **Spends money.** |
 | `agentmore runs list` | Recent runs (`-l <limit>`) |
@@ -316,7 +323,7 @@ Each command supports `--help` for full usage. Here's what's available:
 | `agentmore runs stop` | Ask an in-progress run to stop (`-r <runId>`). Not all runs can be stopped. |
 | `agentmore balance` | Balance, spend today, and the per-call and daily caps |
 | `agentmore budget` | The spending controls alone, and what's been spent against each |
-| `agentmore usage` | This calendar month: credits used, and what is left |
+| `agentmore usage` | This calendar month: spend so far, and what is left on the balance |
 | `agentmore stats` | How many tools the catalog holds. Free, no key. |
 | `agentmore platforms` | Which surfaces the catalog covers, and how deep. Free, no key. |
 | `agentmore setup` | Complete CLI setup after installation (`--client`; no API key required) |
@@ -334,7 +341,7 @@ Each command supports `--help` for full usage. Here's what's available:
 | `agentmore files rm` | Delete one (`agentmore files rm "<path>"`). Free. |
 | `agentmore files mv` | Move or rename (`agentmore files mv "<from>" "<to>"`). Free. |
 | `agentmore files usage` | Space used of your quota, and the per-file limit. Free. |
-| `agentmore skills` | Every published skill — whole capabilities, not single calls. Free, no key. |
+| `agentmore skills` | Every published skill — whole capabilities, not single calls. Needs a key; spends nothing. |
 | `agentmore skill` | One skill in full, with the line to paste into an agent (`agentmore skill "<id>"`). Free. |
 | `agentmore install` | Write a skill's file into your agent's skills directory (`-d <dir>`, `--force`). |
 
@@ -365,10 +372,10 @@ agentmore discover -q "tiktok user profile"
 # 2. Inspect the tool to learn its input schema, price and caveats
 agentmore inspect "tikhub/api/v1/tiktok/web/fetch_user_profile"
 
-# 3. Price it without spending (optional — needs no key, calls nothing)
+# 3. Price it without spending (optional — calls no vendor, spends nothing)
 agentmore run "tikhub/api/v1/tiktok/web/fetch_user_profile" \
   -i '{"uniqueId":"tiktok"}' --dry
-# -> 0.15 credits (1 call), today 0 of 300 credits
+# -> $0.0015 (1 call), today $0 of a $3.00 daily cap
 
 # 4. Fire the run (returns immediately with a run ID)
 agentmore run "tikhub/api/v1/tiktok/web/fetch_user_profile" \
@@ -436,7 +443,7 @@ an empty payload still runs at the vendor and still bills on a per-result tool.
 
 ```bash
 agentmore discover -q "tiktok user profile" -l 4
-# -> tikhub/api/v1/tiktok/web/fetch_user_profile  0.15 credits/call  needs api key  1 params
+# -> tikhub/api/v1/tiktok/web/fetch_user_profile  $0.0015/call  needs api key  1 params
 
 agentmore inspect "tikhub/api/v1/tiktok/web/fetch_user_profile"
 # -> queryParams: secUid (string), uniqueId (string)
@@ -444,11 +451,11 @@ agentmore inspect "tikhub/api/v1/tiktok/web/fetch_user_profile"
 
 agentmore run "tikhub/api/v1/tiktok/web/fetch_user_profile" \
   -i '{"uniqueId":"tiktok"}' --dry
-# -> 0.15 credits (1 call), today 0 of 300 credits
+# -> $0.0015 (1 call), today $0 of a $3.00 daily cap
 
 agentmore run "tikhub/api/v1/tiktok/web/fetch_user_profile" \
   -i '{"uniqueId":"tiktok"}' -o profile.json
-# -> charged 0.15 credits, saved -> profile.json
+# -> charged $0.0015, saved -> profile.json
 ```
 
 Stats live at `.data.userInfo.stats` — `followerCount`, `heartCount`,
@@ -506,8 +513,8 @@ catalog. That is how you decide whether a key is worth getting.
 ```bash
 agentmore run "apify/apify/instagram-search-scraper" \
   -i '{"search":"a","searchLimit":250}' --dry
-# -> 86.25 credits (250 rows × 1 query = 250)
-# -> 86.25 credits exceeds the 30-credit per-call cap.
+# -> $0.8625 (250 rows × 1 query = 250)
+# -> $0.8625 exceeds the $0.30 per-call cap.
 ```
 
 The dry-run payload also carries `runnable` and, when false, `blockedBy` — so you
@@ -657,7 +664,7 @@ agentmore keys add -k <api-key> -l <label>   # Add a key (first key is auto-acti
 agentmore keys list                          # Show all configured keys, masked
 agentmore keys activate -l <label>           # Switch the active key
 agentmore keys remove -l <label>             # Remove a key (use -f to skip confirmation)
-agentmore usage                              # This month's allowance and spend
+agentmore usage                              # This month's spend
 agentmore budget                             # The caps that can stop a run
 agentmore login                              # Browser sign-in instead of a key
 agentmore setup-token                        # Same approval, printed (for CI)
@@ -741,7 +748,7 @@ control that stopped it. The controls are:
 
 **`BLOCKED` is terminal** — it will not proceed on its own, so stop polling. The
 run cost nothing. **Tell the user which control blocked it and that they can
-start or upgrade a plan at `https://agentmore.app/pricing`, or adjust the caps, before
+add funds at `https://agentmore.app/app/wallet`, or adjust the caps, before
 retrying** — retrying unchanged blocks identically. `agentmore budget` prints
 the same numbers.
 
@@ -850,7 +857,7 @@ without parsing the payload.
   `agentmore setup` to see what is missing, then
   `agentmore keys add -k <key> -l main`.
 - **"External tools are switched off"** — the operator's master switch is off,
-  above every account. It costs `0 credits`, it applies to every tool from every
+  above every account. It costs `$0`, it applies to every tool from every
   vendor, and retrying is pointless until someone turns it back on. Report it as
   what it is — a switch, not a fault with the request, the key or the balance —
   and fall back (see below). The per-account wording is different: **"switched
@@ -867,19 +874,21 @@ without parsing the payload.
 - **Run status `BLOCKED`** — a spending control stopped the run before it
   executed. Inspect the `controls` array in `agentmore runs get -r <runId>` to
   see which one triggered. Retrying as-is will block again until the control is
-  changed — let the user know they can start or upgrade a plan, or adjust the control in the app,
-  or wait for a budget window to reset.
+  changed — let the user know they can add funds, or adjust the control in the
+  app, or wait for a budget window to reset.
 - **Run taking a long time** — normal for some tools. Runs can take up to 120
   seconds. Keep polling, or let `--wait` handle it.
-- **"Out of credits"** — the account's credit balance will not
-  cover the call. Tell the user to start or upgrade a plan; there is no top-up, and retrying refuses identically.
+- **"Out of funds"** — the account's dollar balance will not cover the call.
+  Tell the user to add funds at `https://agentmore.app/app/wallet`; retrying
+  refuses identically. Auto-reload stops it happening mid-pipeline next time,
+  and an agent with no account at all can pay per call over x402 or MPP.
 - **`FAILED` with `providerResponse.httpStatus` 402** — a server-side problem
   with that vendor, not the user's balance. It costs nothing and affects every
   endpoint from that vendor, so switch vendors rather than retrying, and make
   clear to the user that it is not their account.
 - **`FAILED` with `httpStatus` 200 and "delivered no result"** — the vendor
   answered normally but put a failure in the body, or returned an empty payload.
-  It settles at `0 credits`. When the reason mentions credit, balance or quota,
+  It settles at `$0`. When the reason mentions credit, balance or quota,
   treat it exactly like the 402 above: server-side, not the user's account, and
   affecting every endpoint from that vendor. Switch vendors rather than
   retrying, and report it.
@@ -957,7 +966,7 @@ reads to learn a whole job end to end. Most work is a tool; skills exist for the
 handful of capabilities that are a process rather than a call.
 
 ```bash
-agentmore skills                    # what is published (free, no key)
+agentmore skills                    # what is published (needs a key, spends nothing)
 agentmore skill "gauntlet-loop"     # one skill and the line to paste
 agentmore install "ui"              # write its file into your agent
 ```
@@ -1020,10 +1029,10 @@ Do not reach here first. If the user needs data, that is `discover` and a tool.
 14. **Surface BLOCKED runs to the user** — a `BLOCKED` status means a spending
     control stopped the run; it is terminal, costs nothing and will not
     self-resolve. Report which control blocked it (from the `controls` list) and
-    tell the user they can upgrade their plan or adjust that control in the app before
+    tell the user they can add funds or adjust that control in the app before
     retrying.
 15. **Report a wrong charge, do not absorb it.** No result means no charge. If a
-    run settled above `0 credits` without delivering anything, or a cost does not
+    run settled above `$0` without delivering anything, or a cost does not
     match the pricing shape, mail `rick@agentmore.app` with the `runId` and your
     pasted output — see Support. Say so to the user too; never let a billing
     fault pass silently.

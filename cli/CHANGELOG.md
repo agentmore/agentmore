@@ -3,6 +3,26 @@
 All notable changes to `@agentmore/cli`. This project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-08-24
+
+### Changed — BREAKING
+
+- **Discovery and inspection now require an API key.** `agentmore discover`,
+  `agentmore inspect`, `agentmore skills`, `agentmore skill` and the catalog
+  read behind `agentmore install` send `Authorization: Bearer …` and refuse with
+  "No API key configured. Run: agentmore setup" when there is none. The server
+  gated `/api/supertool/discover`, `/api/supertool/inspect` and
+  `/api/skill-catalog{,/discover,/inspect}` on the same day; an older CLI sends
+  no key to those routes and gets a bare `401`.
+- **They still spend nothing.** The key identifies the caller and lifts the rate
+  limit; it does not buy the lookup. Both routes are on the paywall bypass, so an
+  account with an empty balance can still search the catalog.
+- `agentmore stats` and `agentmore platforms` are unchanged and still keyless —
+  they read the published marketing facts (`/api/supertool/public`), not the
+  catalog.
+- Fetching a published `SKILL.md` by its public URL is unchanged and still
+  keyless. A skill file has no key to present.
+
 ## [0.2.3] — 2026-08-19
 
 ### Changed

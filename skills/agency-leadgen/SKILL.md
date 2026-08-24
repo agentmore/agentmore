@@ -88,7 +88,11 @@ Do this **once at the start of a session**, not before every task — it is a fr
 call, but it is not free attention.
 
 Also confirm the CLI is recent enough — **`agentmore --version` must be at
-least `0.2.1`**.
+least `0.3.0`**.
+
+⚠️ **0.3.0 is a hard floor, not a preference.** Discovery and inspection began
+requiring a key on 2026-08-24, and an older CLI sends none — so `discover` and
+`inspect` answer `401` on 0.2.x and the first step of every run below fails.
 
 ⚠️ **It is deliberately a FLOOR, not an equality.** This file and the CLI used
 to claim they shipped "as a pair" and had to match exactly, which was false the
@@ -124,14 +128,14 @@ API key:
 | **Exa** | web search and page contents | the cheapest way to answer "what is this company" |
 | **Akta** | company search, enrichment, news, employee and product reviews | company *search* and industry search are free |
 | **Google Maps** (via Apify) | local businesses as structured records — name, address, phone, website, rating, review count | ⭐ **the instrument for any local trade.** See Flow 2 |
-| **Google Maps** (via SerpApi) | local businesses as structured records — name, address, phone, website, rating, reviews | ⭐ the instrument for any local trade. 3 credits a call for ~20 |
+| **Google Maps** (via SerpApi) | local businesses as structured records — name, address, phone, website, rating, reviews | ⭐ the instrument for any local trade. $0.03 a call for ~20 |
 | **Google SERP** (via DataForSEO) | organic results, plus the technologies a domain runs, keywords and backlinks | search presence, and who ranks for the money term |
 
 ⚠️ **LinkedIn is reachable twice, at very different prices.** The
-`tikhub/api/v1/linkedin/…` endpoints are **per-call** at 0.15–0.6 credits; the
-`apify/harvestapi/linkedin-…` actors are **per-result** at 0.9–1.8 credits a
-row. For a company's staff, `get_company_people` at 0.6 per call is a fraction
-of `linkedin-company-employees` at 1.8 per row. Discover both, `inspect` both,
+`tikhub/api/v1/linkedin/…` endpoints are **per-call** at $0.0015–$0.006; the
+`apify/harvestapi/linkedin-…` actors are **per-result** at $0.009–$0.018 a
+row. For a company's staff, `get_company_people` at $0.006 per call is a
+fraction of `linkedin-company-employees` at $0.018 per row. Discover both, `inspect` both,
 and pick on price and pricing shape — not on whichever you saw first.
 
 ### What exists but cannot run
@@ -181,9 +185,11 @@ saves the whole turn.
 
 ## You Need a Key
 
-Running a tool needs an API key. **Discovery and inspection do not** — you can
-search the catalog and read any tool's schema and price before anything is
-configured, so you are never blocked from planning a run.
+**Everything here needs an API key, discovery included** (changed 2026-08-24 —
+it used to be keyless). Searching the catalog and reading a tool's schema and
+price still SPEND NOTHING and still work on an empty balance; the key says who
+is asking, it does not buy the lookup. But get the key first: with none, the
+very first `discover` fails and there is nothing to plan against.
 
 ```bash
 agentmore setup
@@ -302,14 +308,13 @@ Most keys are not narrowed.
 
 ## Move Fast — One Dry Run, Then Go
 
-⚠️ **CREDITS ARE THE UNIT. THERE IS NOTHING TO CONVERT, AND NOTHING TO LOOK UP.**
+⚠️ **DOLLARS ARE THE UNIT. THERE IS NOTHING TO CONVERT, AND NOTHING TO LOOK UP.**
 Every price you will see — `discover`, `inspect`, `--dry`, a settled run,
-`balance`, `budget` — is already in credits. Do not open the pricing page, do
+`balance`, `budget` — is already in US dollars. Do not open the pricing page, do
 not web-search for a rate, and above all do not go reading the site's JavaScript
-bundles for a credits-to-dollars number. **Measured on a real run: 37.2 of 63
-seconds went on exactly that, and it found nothing, because there is nothing
-there.** If the user asks what a credit is worth, say you do not have that and
-quote the credits.
+bundles. **Measured on a real run: 37.2 of 63 seconds went on exactly that kind
+of hunt, and it found nothing, because there is nothing there.** If the user
+asks what a call costs, quote the number the CLI printed.
 
 **The whole loop is four steps, and only one of them is optional:**
 
@@ -327,8 +332,8 @@ If the estimate is affordable, go.
 ⚠️ **THE DRY-RUN NUMBER IS A BEST CASE, NOT A QUOTE.** It prices what you asked
 for. A vendor that returns more rows than you asked for bills for what it
 actually delivered, and on a per-result tool that is the whole difference.
-**Measured: a maps call estimated at 4.5 credits returned 20 rows instead of the
-requested 10 and settled at 9.** So:
+**Measured: a maps call estimated at $0.045 returned 20 rows instead of the
+requested 10 and settled at $0.09.** So:
 
 - **On a `PER_RESULT` tool, assume the cap may be ignored** and budget for the
   vendor's own page size — usually ~20. If that worst case is not affordable,
@@ -391,8 +396,8 @@ Each command supports `--help` for full usage. Here's what's available:
 
 | Command | What it does |
 | --- | --- |
-| `agentmore discover` | Search the catalog in natural language (`-q <query>`, `-l <limit>`, `-s <minScore>`). Free, no key. |
-| `agentmore inspect` | Full details and input schema for one tool (`agentmore inspect "<tool id>"`). Free, no key. |
+| `agentmore discover` | Search the catalog in natural language (`-q <query>`, `-l <limit>`, `-s <minScore>`). Needs a key; spends nothing. |
+| `agentmore inspect` | Full details and input schema for one tool (`agentmore inspect "<tool id>"`). Needs a key; spends nothing. |
 | `agentmore estimate` | What an exact input would cost, without calling the vendor (`-i` / `-f`). |
 | `agentmore run` | Execute a tool (`-i` inline JSON, `-f` input file, `--dry` to price only, `-w` to wait, `-o` to save output). Returns a runId. **Spends money.** |
 | `agentmore runs list` | Recent runs (`-l <limit>`) |
@@ -400,7 +405,7 @@ Each command supports `--help` for full usage. Here's what's available:
 | `agentmore runs stop` | Ask an in-progress run to stop (`-r <runId>`). Not all runs can be stopped. |
 | `agentmore balance` | Balance, spend today, and the per-call and daily caps |
 | `agentmore budget` | The spending controls alone, and what's been spent against each |
-| `agentmore usage` | This calendar month: credits used, and what is left |
+| `agentmore usage` | This calendar month: spend so far, and what is left on the balance |
 | `agentmore stats` | How many tools the catalog holds. Free, no key. |
 | `agentmore platforms` | Which surfaces the catalog covers, and how deep. Free, no key. |
 | `agentmore setup` | Complete CLI setup after installation (`--client`; no API key required) |
@@ -444,7 +449,7 @@ agentmore inspect "apollo/mixed_companies/search"
 # 3. Price it without spending (optional — needs no key, calls nothing)
 agentmore run "apollo/mixed_companies/search" \
   -i '{"organization_locations[]":["Berlin"],"per_page":5}' --dry
-# -> 5 credits (1 call), today 0 of 300 credits
+# -> $0.05 (1 call), today $0 of a $3.00 daily cap
 
 # 4. Fire the run (returns immediately with a run ID)
 agentmore run "apollo/mixed_companies/search" \
@@ -649,7 +654,7 @@ actually ask for, that a plain ICP search does not answer.
 
 ```bash
 agentmore discover -q "organization search" -l 4
-# -> apollo/mixed_companies/search   5 credits   api-key   runnable   PER_CALL
+# -> apollo/mixed_companies/search   $0.05   api-key   runnable   PER_CALL
 
 agentmore inspect "apollo/mixed_companies/search"
 # -> queryParams: organization_num_employees_ranges[], organization_locations[],
@@ -657,7 +662,7 @@ agentmore inspect "apollo/mixed_companies/search"
 
 agentmore run "apollo/mixed_companies/search" \
   -i '{"organization_num_employees_ranges[]":["11,50"],"organization_locations[]":["Berlin"],"q_organization_keyword_tags[]":["plumbing"],"per_page":5}' --dry
-# -> 5 credits (1 call)
+# -> $0.05 (1 call)
 ```
 
 ⚠️ **Copy each key exactly as `inspect` prints it, brackets included.** Several
@@ -666,7 +671,7 @@ tools here name array parameters with a trailing `[]`, and
 call runs, bills, and comes back unfiltered.
 
 **Free first.** `akta/v1/company/search` and `apollo/mixed_people/api_search`
-cost 0 credits. Confirm the ICP shape on those before paying for anything.
+cost $0. Confirm the ICP shape on those before paying for anything.
 
 ### Flow 2: A local trade — Google Maps is the instrument
 
@@ -678,24 +683,24 @@ discovering that.
 
 ```bash
 agentmore discover -q "google maps local businesses" -l 3
-# -> serpapi/search.json?engine=google_maps      3 credits    PER_CALL
-# -> apify/damilo/google-maps-scraper            0.45         PER_RESULT
+# -> serpapi/search.json?engine=google_maps      $0.03        PER_CALL
+# -> apify/damilo/google-maps-scraper            $0.0045      PER_RESULT
 
 agentmore inspect "serpapi/search.json?engine=google_maps"
 # -> queryParams: q, ll, type, hl, start   (required: q)
 
 agentmore run "serpapi/search.json?engine=google_maps" \
   -i '{"q":"plumber","ll":"@52.3676,4.9041,14z","hl":"nl"}' --dry
-# -> 3 credits (1 call)
+# -> $0.03 (1 call)
 
 agentmore run "serpapi/search.json?engine=google_maps" \
   -i '{"q":"plumber","ll":"@52.3676,4.9041,14z","hl":"nl"}' -o local.json
 ```
 
 ⚠️ **Prefer the per-call route, and check the shape before you assume.** SerpApi
-is **3 credits a CALL** and returns ~20 businesses; the Apify actor is 0.45 **a
-ROW**, so the same 20 rows cost 9. One call, a third of the price, richer
-records. `inspect` both if you are unsure — the pricing shape is the decision,
+is **$0.03 a CALL** and returns ~20 businesses; the Apify actor is $0.0045 **a
+ROW**, so the same 20 rows cost 20 × $0.0045 = $0.09. One call, a third of the
+price, richer records. `inspect` both if you are unsure — the pricing shape is the decision,
 not the headline number.
 
 ⚠️ **IF SERPAPI FAILS, FALL STRAIGHT TO THE APIFY ACTOR.** It runs on a monthly
@@ -732,12 +737,12 @@ pass is in what you already paid for:
 | **rating** | a low rating is a pain point, and pain points are openers |
 | **type** | the ICP filter Maps gives you for nothing |
 
-Score on those before spending another credit. Most of a local list is
+Score on those before spending another cent. Most of a local list is
 disqualified on "no website" or "3 reviews" alone.
 
 **Then go deeper only on what survives:**
 
-- `apify/compass/google-maps-reviews-scraper` at **0.068 a row** — the cheapest
+- `apify/compass/google-maps-reviews-scraper` at **$0.00068 a row** — the cheapest
   qualification signal in the catalog. Recent reviews say, in the owner's
   customers' own words, exactly what is going wrong. That is the hook.
 - `dataforseo/v3/on_page/instant_pages` at **0.03** — is their site any good
@@ -752,7 +757,7 @@ emergency plumber" is SERP.
 
 ```bash
 agentmore discover -q "google serp results" -l 3
-# -> dataforseo/v3/serp/google/organic/live/advanced   4 credits   PER_CALL
+# -> dataforseo/v3/serp/google/organic/live/advanced   $0.04   PER_CALL
 
 agentmore run "dataforseo/v3/serp/google/organic/live/advanced" \
   -i '{"keyword":"plumber amsterdam","location_code":<code>,"language_code":"nl","depth":50}' -o serp.json
@@ -761,7 +766,7 @@ agentmore run "dataforseo/v3/serp/google/organic/live/advanced" \
 ⚠️ **This one tool inverts the "small limit first" rule.** Its own schema says
 so: *"You are charged the depth=100 worst case regardless."* A low `depth` saves
 nothing, so ask for the depth you need — 50 or 100 — rather than paying the same
-4 credits for 10 rows.
+$0.04 for 10 rows.
 
 ⚠️ **`location_code` is a numeric code with a default.** The schema documents
 exactly one value — `2840 = United States` — and that is the default, so an
@@ -773,8 +778,8 @@ not infer it from a pattern.
 
 ```bash
 agentmore discover -q "linkedin company employees" -l 4
-# -> apify/harvestapi/linkedin-company-employees  1.8  PER_RESULT
-# -> tikhub/.../linkedin/web/get_company_people   0.6  PER_CALL
+# -> apify/harvestapi/linkedin-company-employees  $0.018   PER_RESULT
+# -> tikhub/.../linkedin/web/get_company_people   $0.006   PER_CALL
 ```
 
 ⚠️ **Two routes, and the pricing SHAPE differs.** The Apify actor bills **per
@@ -785,7 +790,7 @@ three people out of four hundred.
 
 ⚠️ **There is a cheaper LinkedIn tier again.** The `web_v2` endpoints
 (`get_user_profile`, `get_company_profile`, `get_company_posts`, `search_users`)
-are **0.15 per call** — a quarter of the `web` ones at 0.6. `inspect` both; the
+are **$0.0015 per call** — a quarter of the `web` ones at $0.006. `inspect` both; the
 fields differ, and sometimes the cheap one already has what you need.
 
 ### Flow 4: Score before you enrich
@@ -798,9 +803,9 @@ reason down, drop what fails. Then enrich only what is left:
 
 ```bash
 agentmore discover -q "enrich a person" -l 3
-# -> pdl/v5/person/enrich         30 credits   PER_CALL
-# -> pdl/v5/company/enrich        10 credits   PER_CALL
-# -> apollo/organizations/enrich   5 credits   PER_CALL
+# -> pdl/v5/person/enrich         $0.30   PER_CALL
+# -> pdl/v5/company/enrich        $0.10   PER_CALL
+# -> apollo/organizations/enrich   $0.05   PER_CALL
 ```
 
 ⚠️ Those differ by 6x, and two of them are not people. `discover` ranks on
@@ -846,7 +851,7 @@ Whatever you pick, the discipline is the same: **one cheap call per row across
 the whole list, before any per-row enrichment.**
 
 **The web-audit version**, because it is the cheapest endpoint in the whole job:
-`dataforseo/v3/on_page/instant_pages` at **0.03 credits per call**. It audits
+`dataforseo/v3/on_page/instant_pages` at **$0.0003 per call**. It audits
 one page — does the site load, is it broken, is it ancient, does it have the
 basics.
 
@@ -855,7 +860,7 @@ agentmore inspect "dataforseo/v3/on_page/instant_pages"
 agentmore run "dataforseo/v3/on_page/instant_pages" -i '{"url":"https://example.com"}' -o audit.json
 ```
 
-Run it across **500 domains for about 15 credits** and you have a real
+Run it across **500 domains for $0.15** — 500 × $0.0003 — and you have a real
 qualification column before you spend anything on enrichment. When the user
 sells websites, marketing or hosting, the audit *is* the pitch — "your site
 takes 9 seconds to load" is a better opener than any firmographic. ⚠️ **When
@@ -1058,8 +1063,8 @@ Five things decide what a run costs, and the first two are the ones that
 surprise people:
 
 - **Price the run before starting it.** Rows × per-row cost, said out loud, in
-  **dollars**, before the first paid call. Credits are the billing unit; dollars
-  are the only unit the person approving it thinks in.
+  **dollars**, before the first paid call. Every price the CLI prints is already
+  in dollars, so this is arithmetic, not a conversion.
 - **Know which pricing shape you are on.** Per-call is one charge however many
   rows come back. Per-result scales with your limit *and* with how many queries
   you pass. A run crosses between the two — see Flow 3 — and that flip is the
@@ -1071,7 +1076,8 @@ surprise people:
   retry, do not split the call to slip under the cap, do not quietly swap in a
   cheaper vendor. Name the control and stop. `agentmore budget` prints it.
 - **An empty balance is not yours to solve.** Say which control stopped the run
-  and hand it to whoever owns the account.
+  and hand it to whoever owns the account — the fix is adding funds, which is
+  theirs to do, not yours to work around.
 
 ```bash
 agentmore balance      # what is left, and today's caps
@@ -1139,7 +1145,7 @@ this section exists.
 
 ⚠️ **You do not decide account structure, and you should not advise on it.** How
 keys, balances and caps are split across accounts is a decision for whoever
-built and deployed you. If the user asks about billing, plans or running this
+built and deployed you. If the user asks about billing or running this
 across several of their own customers, point them at whoever set this up rather
 than guessing — you can see one balance and one set of caps, which is not enough
 to answer that question.
@@ -1182,7 +1188,7 @@ control that stopped it. The controls are:
 
 **`BLOCKED` is terminal** — it will not proceed on its own, so stop polling. The
 run cost nothing. **Tell the user which control blocked it and that they can
-start or upgrade a plan at `https://agentmore.app/pricing`, or adjust the caps, before
+add funds at `https://agentmore.app/app/wallet`, or adjust the caps, before
 retrying** — retrying unchanged blocks identically. `agentmore budget` prints
 the same numbers.
 
@@ -1322,7 +1328,7 @@ agentmore keys add -l <label>                # Same, but typed at a hidden promp
 agentmore keys list                          # Show all configured keys, masked
 agentmore keys activate -l <label>           # Switch the active key
 agentmore keys remove -l <label>             # Remove a key (use -f to skip confirmation)
-agentmore usage                              # This month's allowance and spend
+agentmore usage                              # This month's spend
 agentmore budget                             # The caps that can stop a run
 agentmore login                              # Browser sign-in instead of a key
 agentmore setup-token                        # Same approval, printed (for CI)
@@ -1481,7 +1487,7 @@ attempts against a genuinely billing endpoint cost money.
 10. **One `--dry`, then run it.** No credential needed, prices anything — but it
     is a BEST CASE, not a quote: a per-result vendor can ignore your cap and
     bill for what it really returned. Never follow a dry run with research.
-11. **Never look up what a credit is worth.** Everything is already in credits;
+11. **Never go hunting for a rate.** Every price is already in US dollars;
     there is no conversion to find, and the pricing page will not give you one.
     A real run lost 37 of its 63 seconds to that search.
 12. **Always `-o <file>`.** The output cost money; losing it to a terminal
