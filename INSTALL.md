@@ -35,7 +35,7 @@ whether a key is stored and whether that key works. It asks the user nothing, so
 never stop on it.
 
 Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
-free and comes with 0.5 credits, no card. Once they paste it back:
+free and comes with $0.50 of starting balance, no card. Once they paste it back:
 
 ```
 agentmore keys add -k <key> -l main
@@ -65,7 +65,7 @@ whether a key is stored and whether that key works. It asks the user nothing, so
 never stop on it.
 
 Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
-free and comes with 0.5 credits, no card. Once they paste it back:
+free and comes with $0.50 of starting balance, no card. Once they paste it back:
 
 ```
 agentmore keys add -k <key> -l main
@@ -94,7 +94,7 @@ whether a key is stored and whether that key works. It asks the user nothing, so
 never stop on it.
 
 Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
-free and comes with 0.5 credits, no card. Once they paste it back:
+free and comes with $0.50 of starting balance, no card. Once they paste it back:
 
 ```
 agentmore keys add -k <key> -l main
@@ -125,7 +125,7 @@ whether a key is stored and whether that key works. It asks the user nothing, so
 never stop on it.
 
 Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
-free and comes with 0.5 credits, no card. Once they paste it back:
+free and comes with $0.50 of starting balance, no card. Once they paste it back:
 
 ```
 agentmore keys add -k <key> -l main
@@ -154,7 +154,7 @@ whether a key is stored and whether that key works. It asks the user nothing, so
 never stop on it.
 
 Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
-free and comes with 0.5 credits, no card. Once they paste it back:
+free and comes with $0.50 of starting balance, no card. Once they paste it back:
 
 ```
 agentmore keys add -k <key> -l main
@@ -197,7 +197,7 @@ That much needs no account. Searching the catalog and inspecting a tool's input
 schema and price are free and anonymous.
 
 Then ask the user for an API key — grab one at `https://agentmore.app/app/api-keys`. It is
-free and comes with 0.5 credits, no card. Once they paste it back:
+free and comes with $0.50 of starting balance, no card. Once they paste it back:
 
 ```
 agentmore keys add -k <key> -l main
@@ -243,7 +243,7 @@ codex mcp add agentmore --url https://agentmore.app/api/agentmore/mcp
 ```
 
 Authenticate with a key from `https://agentmore.app/app/api-keys` — signing up is free and
-comes with 0.5 credits. Some clients prompt for it on the first tool
+comes with $0.50 of starting balance. Some clients prompt for it on the first tool
 call; others want it as an `Authorization: Bearer <key>` header in the config
 above. The server describes itself once connected, so there is no skill to
 install for this path.
