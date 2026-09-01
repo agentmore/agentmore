@@ -248,6 +248,16 @@ tools and grows continuously. You don't know what's available until you search.
 **Video understanding uses Gemini:** use it to summarise, transcribe, describe,
 or answer questions about the first 60 seconds of a public video or YouTube URL.
 
+**Outbound phone calls use `saperly/place-calls`.** Use it only when the user
+asked for a real call and explicitly confirms that the recipient consented.
+Never infer consent from possession of a number. Inspect the tool first, pass
+the destination in E.164 form, retain the consent source, give the call one
+narrow purpose, disclose that the caller is an AI assistant, and set the
+10–60-second maximum. Dry-run the exact input before dialing. One run places one
+call; do not retry a failed or unanswered call unless the user asks again. If
+discover or run reports that carrier activation is pending, report that block
+and stop — no call was placed and nothing was charged.
+
 1. **Discover** — Run `agentmore discover -q "<what you need>"` to search
    available tools. Use `-s <score>` to filter by minimum relevance. Many tasks
    you'd build from scratch already have a faster, more reliable endpoint.
