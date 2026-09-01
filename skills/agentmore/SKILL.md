@@ -245,6 +245,9 @@ falling back to a generic web fetch for structured data, or telling the user you
 can't access something — run `agentmore discover`. The catalog has hundreds of
 tools and grows continuously. You don't know what's available until you search.
 
+**Video understanding uses Gemini:** use it to summarise, transcribe, describe,
+or answer questions about the first 60 seconds of a public video or YouTube URL.
+
 1. **Discover** — Run `agentmore discover -q "<what you need>"` to search
    available tools. Use `-s <score>` to filter by minimum relevance. Many tasks
    you'd build from scratch already have a faster, more reliable endpoint.

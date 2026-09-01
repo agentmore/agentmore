@@ -1,6 +1,6 @@
 ---
 name: leadhunt
-version: 0.2.0
+version: 0.3.0
 description: >-
   Build an emailable lead list. Give it an area — and optionally what to search
   for — to sweep Google Maps, or hand it a list of domains directly. It finds
@@ -59,20 +59,20 @@ tries every agent it finds on the machine, and some cannot take a global
 install. If the output names the current agent under the installed list, it is
 done. Do not re-run it or improvise another installation.
 
-`setup` is a **check, not a signup** — it prints the host, whether a key is
-stored and what the balance is. It asks nothing, so never stop on it.
+`setup` is a **check, not a signup** — it prints the host, key and
+machine-payment readiness, and the balance when a key is connected. It asks
+nothing, so never stop on it.
 
-### The key
+### Maps access and payment
 
-⚠️ **ONE KEY COVERS EVERYTHING PAID HERE.** Google Maps discovery runs on
-AgentMore's managed credential and is billed per call against one dollar
-balance. There is **no SerpApi plan** for the user to buy, and no vendor
-credential ever lands on this machine.
+Google Maps discovery runs on AgentMore's managed SerpApi credential. There is
+**no SerpApi plan** for the user to buy, and no vendor credential lands on this
+machine. **Crawling a domain list is free and needs no payment setup.** Only
+Maps discovery is paid.
 
-**Crawling a domain list is free and needs no key at all.** Only Maps discovery
-is paid. If `setup` says there is no key, ask the user for one
-from `https://agentmore.app/app/api-keys` — free, and it comes with starting
-credit — then:
+The default door is an AgentMore API key and dollar balance. If `setup` says
+there is no key, ask the user for one from
+`https://agentmore.app/app/api-keys` — free, with starting balance — then:
 
 ```bash
 leadhunt key <THEIR_KEY>
@@ -80,6 +80,24 @@ leadhunt key <THEIR_KEY>
 
 It is also read from `$AGENTMORE_API_KEY` and from `~/.agentmore/config.json`, so
 a machine that already ran `agentmore keys add` needs nothing further.
+
+There are also two **keyless, pay-per-call** doors on `/api/leads/run`:
+
+- **x402 (preferred keyless rail):** a funded Base USDC wallet configured in
+  `$LEADHUNT_X402_PRIVATE_KEY`. With no AgentMore key, leadhunt selects it
+  automatically and caps every Maps-page authorization at exactly $0.05.
+- **MPP card (explicit only):** `$MPPX_STRIPE_SECRET_KEY` plus
+  `$LEADHUNT_MPP_PAYMENT_METHOD`, then add `--pay-with mpp`. Each page has a
+  $0.50 card minimum. The $0.45 surplus is credited, but Stripe's card
+  credential does not yet prove a reusable payer identity, so that surplus
+  cannot pay the next page. A 40-result/two-page run can therefore capture
+  $1.00. **Get the user's explicit approval for that amount before using MPP.**
+
+⛔ **Never ask the user to paste a wallet private key or Stripe secret into the
+chat.** Tell them which environment variable to configure themselves, then run
+`leadhunt setup` again. Use `--pay-with x402` or `--pay-with mpp` when the user
+chooses a rail explicitly. An existing AgentMore key remains the default; x402
+is the only automatic keyless fallback, and MPP is never selected silently.
 
 ⛔ **Never ask for a SerpApi key.** `--serp-key` exists only for a user who
 volunteers that they already hold one, and it reaches Maps and nothing else.
@@ -109,8 +127,10 @@ leadhunt -i domains.txt --verify -o leads.csv                        # domain li
 Always pass `--verify` — one cached DNS query per domain, adds an `mx` column,
 effectively free.
 
-**Maps discovery costs $0.03 per page of ~20 results.** `-n 40` is two pages,
-$0.06. Say the number before a big sweep; do not discover the cost afterwards.
+**Maps discovery costs $0.05 per page of ~20 results.** `-n 40` is two pages,
+$0.10 through an AgentMore balance or x402. Say the number before a big sweep;
+do not discover the cost afterwards. MPP card is the explicit exception because
+of its $0.50-per-page floor described above.
 
 Google picks the viewport from the place name and it bleeds into neighbouring
 towns as density runs out, and a single query is capped at roughly 100–120
@@ -170,6 +190,8 @@ had no site.
 | `--ll <lat,lng,z>` | Google picks | viewport; zoom is the radius dial (10z region, 12z city, 14z district, 16z neighbourhood) |
 | `--key <key>` | saved key | AgentMore key for this run |
 | `--serp-key <key>` | — | a raw SerpApi key instead, **Maps only** |
+| `--pay-with <rail>` | key, then x402 | force keyless `x402` or `mpp` payment |
+| `--mpp-payment-method <pm_...>` | environment | Stripe payment method for explicit MPP card payment |
 | `-i, --input <file>` | — | domains from a file (one per line, `#` comments, CSV col 1) |
 | `-o, --out <file>` | stdout | format inferred from the extension |
 | `-f, --format` | table | `table` \| `csv` \| `json` \| `jsonl` |
