@@ -468,10 +468,10 @@ const USAGE = `
 
   ${bold("Run one")}
     agentmore estimate "<id>" -i '<json>'          Worst-case cost. Spends nothing.
-    agentmore run "<id>" -i '<json>' [--dry] [-w]  Execute it. ${bold("Spends credits.")}
+    agentmore run "<id>" -i '<json>' [--dry] [-w]  Execute it. ${bold("Spends money.")}
 
   ${bold("Account")}
-    agentmore usage                                This month's allowance and spend
+    agentmore usage                                Balance and recent spend
     agentmore balance                              Balance, spend and caps
     agentmore budget                               The spending controls alone
     agentmore runs list [-l N]                     Recent runs
@@ -511,9 +511,9 @@ const USAGE = `
     NO_COLOR=1           Disable ANSI colour
 
   ${bold("Paying for it")}
-    Two ways, same catalog. Start a plan and spend per call, or take a
-    subscription, which includes a monthly tool allowance.
-    Start with:  agentmore login       Pricing:  https://agentmore.app/pricing
+    Pay as you go in US dollars. New accounts start with $0.50; after that,
+    add funds at https://agentmore.app/app/wallet. There are no plans; every amount is USD.
+    Start with:  agentmore login
 `;
 
 /**
@@ -534,9 +534,7 @@ const COMMAND_HELP = {
   for CI, a container, or any agent that reads AGENTMORE_API_KEY from a secret
   store. Shown once. Expires like any login token (default ${DEFAULT_TOKEN_DAYS} days, max 180).`,
   usage: `agentmore usage [-j]
-  Your current billing period, in credits: how much of your plan's tool allowance
-  is gone and what is spendable now, as ONE balance. The reset date is printed
-  with it — it follows your subscription's own renewal date, not the 1st.
+  Your dollar balance and tool spend for the current period and today.
   Tool spend only — it does not count chat turns or builds.`,
   setup: `agentmore setup [--client <agent-name>]
   Check the install, that the host is reachable, and that your key works.
@@ -669,30 +667,25 @@ async function cmdSetup(flags) {
     console.log(`    3. ${bold("agentmore keys add -k <your-key> -l main")}\n`);
     console.log(dim("  Or type it at a hidden prompt: agentmore keys add -l main"));
     console.log(dim(`  Or sign in through the browser instead: ${bold("agentmore login")}\n`));
-    // ⛔ There is NO top-up and no pay-per-call — credits come from a plan and
-    // only from a plan. This block used to offer "start a plan and pay per call,
-    // no subscription" alongside "a subscription", which is two descriptions of
-    // a purchase path that no longer exists. A fresh install is exactly where a
-    // stranger forms their idea of how this is billed, so it has to be the real
-    // one: free credits on signup, then a plan.
-    console.log(`  ${bold("A new account starts with 50 free credits")} — no card, enough to try it.`);
-    console.log("  After that, a plan is how credits arrive, and they refresh each month.");
-    console.log(dim(`    Plans: ${baseUrl()}/pricing\n`));
-    console.log(dim("  Discovery and inspection are free and work right now, signed in or not."));
+    console.log(`  ${bold("A new account starts with $0.50")} — no card, enough to try it.`);
+    console.log("  After that, add funds and pay only for the calls you run.");
+    console.log(dim(`    Add funds: ${baseUrl()}/app/wallet\n`));
+    console.log(dim("  Discovery and inspection spend nothing once a key is configured."));
     return;
   }
 
   // 3. Does it actually work? A stored-but-revoked key is the failure that
   //    otherwise shows up much later, mid-task, as a confusing 401.
   const budget = await callTool("supertool_budget", {});
+  const shownBudget = normalizeBudget(budget);
   console.log(`  ${dim("✓")} signed in`);
-  if (budget && typeof budget.spentToday === "number") {
+  if (shownBudget && typeof shownBudget.spentToday === "number") {
     console.log(
-      `  ${dim("✓")} spent today ${money(budget.spentToday)} of ${money(budget.dailyLimit)} daily cap${capNote(budget.dailySource)}`,
+      `  ${dim("✓")} spent today ${money(shownBudget.spentToday)} of ${money(shownBudget.dailyLimit)} daily cap${capNote(shownBudget.dailySource)}`,
     );
   }
   console.log(`\n  Ready. Try: ${bold('agentmore discover -q "instagram profile"')}`);
-  console.log(dim(`  This month's allowance and spend: agentmore usage`));
+  console.log(dim(`  Balance and spend: agentmore usage`));
 }
 
 /** Catalog size and coverage — free, no key, so it works before setup. */
@@ -891,98 +884,58 @@ async function cmdLogout(flags) {
 
 // ── usage ────────────────────────────────────────────────────────────────────
 
-/** A Claude-style meter: how much of this month's allowance is gone. */
-function bar(fraction, width = 32) {
-  const filled = Math.max(0, Math.min(width, Math.round(fraction * width)));
-  return `${"█".repeat(filled)}${dim("░".repeat(width - filled))}`;
-}
-
 /**
- * ⚠️ **CREDITS, not dollars** (0.2.0). The server's `*Cents` fields carry
- * CREDITS — a credit is exactly one cent, so the number needs no scaling at
- * all; the old `/100` printed a 3,000-credit allowance as "$30.00". Sub-credit
- * amounts keep their decimals: a charge that happened must never print as 0.
+ * Format dollars without rounding sub-cent tool prices down to zero.
  */
 const money = (n) => {
   const v = Math.max(0, Number(n) || 0);
-  const s = v >= 1 || v === 0 ? v.toLocaleString("en-US", { maximumFractionDigits: 2 })
-    : v.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
-  return `${s} ${s === "1" ? "credit" : "credits"}`;
+  const s = v >= 0.01 || v === 0
+    ? v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : v.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+  return `$${s}`;
 };
 
 /**
- * `agentmore usage` — this month, in credits.
- *
- * Deliberately about TOOL SPEND ONLY. A subscription also carries app
- * credits (chat turns, builds), and mixing the two into one bar would tell an
- * agent operator nothing they can act on: the number that decides whether the
- * next `run` succeeds is this one.
+ * Budget responses before moneyVersion 2 carried values in the retired
+ * cent-sized display unit even though `unit` already said `usd`. Normalize old
+ * servers here so a newly installed CLI remains correct during rollout.
+ */
+const normalizeBudget = (budget) => {
+  if (!budget || budget.moneyVersion === 2) return budget;
+  const usd = (value) => value == null ? value : Number(value) / 100;
+  return {
+    ...budget,
+    spentToday: usd(budget.spentToday),
+    perCallLimit: usd(budget.perCallLimit),
+    dailyLimit: usd(budget.dailyLimit),
+    yourDailyCap: usd(budget.yourDailyCap),
+    yourPerCallCap: usd(budget.yourPerCallCap),
+    unit: "usd",
+  };
+};
+
+/**
+ * `agentmore usage` — the dollar balance and recent tool spend.
  */
 async function cmdUsage(flags) {
   const d = await restGet("/api/supertool/usage");
   if (flags.j || flags.json) return void emit(d, flags);
-
-  // `allowanceCents` is what has actually been CREDITED this month;
-  // `planAllowanceCents` is what the plan grants over a full billing cycle.
-  // Report the credited figure: it is the one that decides whether the next
-  // `run` succeeds. Drawing the bar against the plan figure would promise
-  // spending power the balance does not currently have.
-  const allowance = d.allowanceCents ?? 0;
-  const planAllowance = d.planAllowanceCents ?? 0;
-  const used = d.usedCents ?? 0;
-  const balance = d.walletBalanceCents ?? 0;
+  const used = d.spentMicros != null
+    ? Number(d.spentMicros) / 1_000_000
+    : d.usedMicros != null ? Number(d.usedMicros) / 1_000_000 : Number(d.usedCents ?? 0) / 100;
+  const balance = d.balanceMicros != null
+    ? Number(d.balanceMicros) / 1_000_000
+    : d.walletBalanceMicros != null ? Number(d.walletBalanceMicros) / 1_000_000
+    : Number(d.walletBalanceCents ?? d.availableCents ?? 0) / 100;
+  const today = d.spentTodayMicros != null
+    ? Number(d.spentTodayMicros) / 1_000_000
+    : Number(d.spentTodayCents ?? 0) / 100;
 
   console.log(`\n  ${bold("Tool usage")} ${dim(d.month ?? "")}\n`);
-
-  // Printed in EVERY branch, because the shortfall is just as misleading when
-  // some other credit makes `allowance` non-zero — that draws a full-looking
-  // bar against a small number while omitting what the plan grants.
-  const uncredited = () => {
-    if (!d.allowanceUncredited || planAllowance <= 0) return;
-    console.log(dim(`  Your ${d.plan} plan includes ${money(planAllowance)}/mo of tool credits.`));
-    console.log(dim(`  ${allowance > 0 ? "Only " + money(allowance) + " has" : "None of it has"} been credited this month — a subscription`));
-    console.log(dim(`  credits it when the invoice is paid. See ${baseUrl()}/app/dashboard.\n`));
-  };
-
-  if (allowance <= 0 && planAllowance > 0) {
-    // Subscribed, but this month's allowance never landed. Say so plainly
-    // rather than printing "No plan allowance" at a paying subscriber.
-    console.log(`  Spent this month   ${bold(money(used))}`);
-    console.log(`  ${bold("Available now")}      ${bold(money(balance))}  ${dim("your balance")}`);
-    console.log("");
-    uncredited();
-    console.log(dim(`  Spent today        ${money(d.spentTodayCents ?? 0)}\n`));
-    return;
-  }
-
-  if (allowance > 0) {
-    const frac = used / allowance;
-    console.log(`  ${bar(frac)}  ${money(used)} of ${money(allowance)}`);
-    console.log(dim(`  Included with your ${d.plan} plan · resets ${new Date(d.resetsAt).toISOString().slice(0, 10)}\n`));
-    // ONE POT. The plan grant is credited into the same balance, so it already
-    // holds whatever is left of it plus anything bought — printing them as two
-    // lines read as two budgets, which is the thing this line exists to stop.
-    console.log(`  ${bold("Available now")}   ${bold(money(balance))}  ${dim("one balance")}`);
-    if (used >= allowance) {
-      // ⛔ No top-up exists. Running out is a hard stop until the plan renews,
-      // so the only honest next step is a bigger plan.
-      console.log(dim(`  This month's allowance is spent. Credits refresh when the plan renews;`));
-      console.log(dim(`  upgrade for a bigger monthly allowance: ${baseUrl()}/pricing`));
-    }
-    console.log("");
-    uncredited();
-    console.log(dim(`  Spent today      ${money(d.spentTodayCents ?? 0)}\n`));
-    return;
-  } else {
-    // No subscription: the free credits ARE the budget, so a bar against a plan
-    // allowance would be a bar against zero — worse than no bar at all.
-    console.log(`  Spent this month   ${bold(money(used))}`);
-    console.log(`  Balance            ${bold(money(balance))}`);
-    console.log(dim(`\n  No plan. Free accounts start with 50 credits; a plan adds`));
-    console.log(dim(`  1,000–3,500 a month: ${baseUrl()}/pricing\n`));
-    return;
-  }
-
+  console.log(`  ${bold("Balance")}           ${bold(money(balance))}`);
+  console.log(`  Spent this period  ${money(used)}`);
+  console.log(`  Spent today        ${money(today)}\n`);
+  console.log(dim(`  Add funds: ${baseUrl()}/app/wallet\n`));
 }
 
 /**
@@ -1351,7 +1304,7 @@ async function main() {
         hints(
           [
             `BLOCKED is terminal — retrying unchanged blocks again${which ? ` (${which})` : ""}`,
-            "start or upgrade a plan, or change the caps in the app, then run it again",
+            "add funds or change the caps in the app, then run it again",
           ],
           flags,
         );
@@ -1377,11 +1330,11 @@ async function main() {
       // without the other is how a run refuses unexpectedly.
       const budget = await callTool("supertool_budget", {});
       const wallet = await restGet("/api/supertool/wallet");
-      // ⚠️ NO /100. `balanceCents` is CREDITS — a credit is exactly one cent, so
-      // the figure passes straight through. Dividing rendered 50 credits as
-      // "0.5", which then printed as "$0.50" and made the whole product look
-      // like it bills in dollars.
-      const merged = { ...budget, balanceCredits: wallet.balanceCents, balance: wallet.balanceCents ?? 0 };
+      const shownBudget = normalizeBudget(budget);
+      const balance = wallet.balanceMicros != null
+        ? Number(wallet.balanceMicros) / 1_000_000
+        : Number(wallet.balanceCents ?? 0) / 100;
+      const merged = { ...shownBudget, balance };
       if (flags.j || flags.json) return void emit(merged, flags);
       console.log(`\n  balance      ${money(merged.balance)}`);
       console.log(`  spent today  ${money(merged.spentToday ?? 0)} of ${merged.dailyLimit == null ? "—" : money(merged.dailyLimit)} daily cap${capNote(merged.dailySource)}`);
@@ -1518,7 +1471,7 @@ async function main() {
     // and at what number" — which is what you need after a BLOCKED run, where
     // the balance was never the problem.
     case "budget": {
-      const budget = await callTool("supertool_budget", {});
+      const budget = normalizeBudget(await callTool("supertool_budget", {}));
       if (flags.j || flags.json) return void emit(budget, flags);
       console.log(`\n  per call     ${budget.perCallLimit == null ? "—" : money(budget.perCallLimit)} ceiling${capNote(budget.perCallSource)}`);
       console.log(`  daily        ${money(budget.spentToday ?? 0)} spent of ${budget.dailyLimit == null ? "—" : money(budget.dailyLimit)}${capNote(budget.dailySource)}`);

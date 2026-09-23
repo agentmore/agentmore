@@ -1,6 +1,6 @@
 ---
 name: agentmore
-version: 0.3.0
+version: 0.3.1
 description: >-
   Discover better ways to complete tasks. Proactively run `agentmore discover`
   before writing a scraper, before using a generic web fetch for structured
@@ -78,7 +78,9 @@ catalog on the same balance — see "Or Connect It as an MCP Server" below.
 
 ### Authentication
 
-Running a tool needs an API key. Discovery and inspection do not.
+Running a tool, discovery, inspection, and catalog skill lookup need an API key.
+Discovery and inspection spend nothing; the key identifies the caller and lifts
+the anonymous rate limit. Fetching a published `SKILL.md` URL remains keyless.
 
 **An API key is the normal way in.** It is one string, so it works everywhere
 the catalog is reachable — this CLI, the hosted MCP server, a plain HTTP call,
@@ -141,7 +143,7 @@ agents that pay per call rather than being a checkout a person completes, and
 nothing has settled through it yet — offer it as the answer to "I have no
 account", not as a replacement for a funded balance.
 
-`agentmore usage` shows where the user stands this month, and
+`agentmore usage` shows the dollar balance and recent tool spend, and
 `agentmore budget` shows the caps that can stop a run before it spends:
 
 ```bash
@@ -258,6 +260,11 @@ This preference applies to generating media, not to analysing, transcribing,
 searching, or downloading an existing image or video. If Higgsfield has no tool
 that fits, select the best suitable catalog tool rather than inventing a workflow.
 
+Higgsfield DoP is **image-to-video**: its source is a still image, not an input
+video. If that image is local, upload it with `agentmore files put`, mint a URL
+with `agentmore files url`, and pass the result in the inspected `image_url`
+field. Do not rename it to `input_image_url`.
+
 **Video understanding uses Gemini:** use it to summarise, transcribe, describe,
 or answer questions about the first 60 seconds of a public video or YouTube URL.
 
@@ -349,7 +356,7 @@ Each command supports `--help` for full usage. Here's what's available:
 | `agentmore runs stop` | Ask an in-progress run to stop (`-r <runId>`). Not all runs can be stopped. |
 | `agentmore balance` | Balance, spend today, and the per-call and daily caps |
 | `agentmore budget` | The spending controls alone, and what's been spent against each |
-| `agentmore usage` | This calendar month: spend so far, and what is left on the balance |
+| `agentmore usage` | Dollar balance, current-period spend, and today's spend |
 | `agentmore stats` | How many tools the catalog holds. Free, no key. |
 | `agentmore platforms` | Which surfaces the catalog covers, and how deep. Free, no key. |
 | `agentmore setup` | Complete CLI setup after installation (`--client`; no API key required) |
@@ -581,8 +588,8 @@ agentmore files put ./photo.png --as in/photo.png
 agentmore files url "in/photo.png" --ttl 1d
 # -> https://…?X-Amz-Expires=86400&X-Amz-Signature=…
 
-# 3. Use it as the tool's input
-agentmore run "<image-to-video tool id>" -i '{"imageUrl":"<url from step 2>"}' -o out.json
+# 3. Use it under the exact field name reported by inspect (Higgsfield DoP: image_url)
+agentmore run "<image-to-video tool id>" -i '{"image_url":"<url from step 2>"}' -o out.json
 
 # 4. Clean up when you're done — files are never auto-deleted
 agentmore files rm "in/photo.png"
@@ -690,7 +697,7 @@ agentmore keys add -k <api-key> -l <label>   # Add a key (first key is auto-acti
 agentmore keys list                          # Show all configured keys, masked
 agentmore keys activate -l <label>           # Switch the active key
 agentmore keys remove -l <label>             # Remove a key (use -f to skip confirmation)
-agentmore usage                              # This month's spend
+agentmore usage                              # Dollar balance and recent spend
 agentmore budget                             # The caps that can stop a run
 agentmore login                              # Browser sign-in instead of a key
 agentmore setup-token                        # Same approval, printed (for CI)

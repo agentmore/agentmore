@@ -3,6 +3,19 @@
 All notable changes to `@agentmore/cli`. This project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-09-22
+
+### Fixed
+
+- Account, budget, balance, and usage output is now denominated and formatted
+  in US dollars. The CLI no longer exposes the retired credit unit or the old
+  plan and monthly-allowance model.
+- Budget output remains correct while the server rollout is in progress: the CLI
+  recognizes the new dollar wire format and normalizes the older cent-sized
+  response when connected to an older server.
+- `agentmore balance` and `agentmore usage` preserve sub-cent amounts by reading
+  the wallet's micro-dollar fields when available.
+
 ## [0.3.0] — 2026-08-24
 
 ### Changed — BREAKING
@@ -96,3 +109,4 @@ same run semantics.
 
 [0.1.4]: https://github.com/Rickboers/agentmore-cli/releases/tag/v0.1.4
 [0.1.0]: https://www.npmjs.com/package/@agentmore/cli/v/0.1.0
+[0.3.1]: https://github.com/agentmore/agentmore/releases/tag/v0.3.1
